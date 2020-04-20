@@ -1,5 +1,8 @@
 package be.eloistree.openmacroinput;
 import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.AWTException;
@@ -15,6 +18,8 @@ import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 
+import be.eloistree.openmacroinput.OsUtility.OS;
+
 
 //java -jar C:\..\JarFileName.jar
 public class OpenMacroInputJavaRuntime {
@@ -23,6 +28,7 @@ public class OpenMacroInputJavaRuntime {
 		   public  static int port = 2501;
 		   public static  ArrayList<String> history= new ArrayList<String>(); 
 		   public static  JTextArea jTextArea=null;
+		   public static Clipboard clipboard;
 		   public static void main(String[] args){
 
 			   println("Open Macro Input (Java)  ");
@@ -48,6 +54,7 @@ public class OpenMacroInputJavaRuntime {
 					   +"- ms:[0,1,2]\n"
 					   +"- wh:[wheel:int]\n"
 				       +"- mm:[x:int]:[y:int]\n"
+				       +"- ct:[text]\n"
 					   +"Code: https://github.com/EloiStree/2020_02_09_OpenMacroInput\n"
 					   +"Support & contact: https://www.patreon.com/eloistree\n");
 					jTextArea.setBackground(new Color(249f/255f, 104f/255f, 84f/255f,1f));
@@ -60,7 +67,7 @@ public class OpenMacroInputJavaRuntime {
 		       }
 		       frame.setLocationRelativeTo(null);
 		       frame.setVisible(true);
-			   
+		       clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		      Thread t = new Thread(new Runnable(){
 		         public void run(){
 		            try {
@@ -94,7 +101,36 @@ public class OpenMacroInputJavaRuntime {
 			                	  
 			                  }
 		                  
-		                  }
+		                  } else if(str.startsWith("ct:")) {
+		                	  
+		                	  char pressType = str.charAt(1);
+		                	  str=  str.substring(3).trim();
+			                  print("Past Text:"+str.length());
+			                  
+			                    if(pressType=='t') {
+			                    	StringSelection text = new StringSelection(str);
+			                    	clipboard.setContents(text,text);
+			                    	
+			                    }
+			                  
+			                    
+			                    if(OsUtility.getOS()== OS.MAC) {
+
+			                    	robot.keyPress(KeyEvent.VK_META);
+			                    	robot.keyPress(KeyEvent.VK_V);
+			                    	robot.keyRelease(KeyEvent.VK_V);
+			                    	robot.keyRelease(KeyEvent.VK_META);
+			                    	
+			                    }
+			                    else {
+			                    	robot.keyPress(KeyEvent.VK_CONTROL);
+			                    	robot.keyPress(KeyEvent.VK_V);
+			                    	robot.keyRelease(KeyEvent.VK_V);
+			                    	robot.keyRelease(KeyEvent.VK_CONTROL);
+			                    	
+			                    }
+			                  }
+		                 
 		                  else if(str.startsWith("ms:")||str.startsWith("mr:")||str.startsWith("mp:")) {
 		                	  char pressType = str.charAt(1);
 		                	  str=  str.substring(3).trim();
