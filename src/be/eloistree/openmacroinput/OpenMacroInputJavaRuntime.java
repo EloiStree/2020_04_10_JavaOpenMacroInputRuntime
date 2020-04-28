@@ -8,6 +8,9 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.AWTException;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -121,13 +124,49 @@ public class OpenMacroInputJavaRuntime {
 
 						}
 
-						else if (str.startsWith("mm:")) {
+						else if (str.startsWith("mm:") || str.startsWith("ma:")) {
+							boolean useAdd=str.charAt(1)=='a';
 							str = str.substring(3).trim();
 							String[] px = str.split(":");
 							try {
+								int xPx=0;
+								int yPx=0;
 								print("Mouse move, Found:" + px[0] + " " + px[1]);
+								Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+								if(px[0].indexOf("p")>0)
+								{
+									px[0]=px[0].replace("p","");
+									float pct = Float.parseFloat(px[0]);
+									xPx =(int)(pct*(float) screenSize.width);
+									
+									
+								}else {
+									
+									xPx =Integer.parseInt(px[0].trim());
+								}
+								
+								if(px[1].indexOf("p")>0) {
 
-								robot.mouseMove(Integer.parseInt(px[0]), Integer.parseInt(px[1]));
+									px[1]=px[1].replace("p","");
+									float pct = Float.parseFloat(px[1]);
+									yPx =(int)(pct*(float) screenSize.height);
+									
+								}else {
+									
+									yPx =Integer.parseInt(px[0].trim());
+								}
+
+								System.out.println("Add:" +useAdd);
+								if(useAdd) {
+									Point p = MouseInfo.getPointerInfo().getLocation();
+									
+
+									xPx+=p.x;
+									yPx+=p.y;
+								}
+								
+								robot.mouseMove(xPx, yPx);
+								//Integer.parseInt(px[1]));
 
 							} catch (Exception e) {
 							}
