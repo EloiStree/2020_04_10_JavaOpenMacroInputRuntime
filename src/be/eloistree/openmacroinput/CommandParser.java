@@ -279,10 +279,12 @@ public class CommandParser {
 		float yPx = 0;
 		MouseMoveCommand.MoveTypeValue xType, yType;
 		try {
-			xType = tokens[0].indexOf("p") > 0 ? MoveTypeValue.InPourcent : MoveTypeValue.InPixel;
-			yType = tokens[1].indexOf("p") > 0 ? MoveTypeValue.InPourcent : MoveTypeValue.InPixel;
+			xType = tokens[0].indexOf("p") > 0 || tokens[0].indexOf("%") > 0 ? MoveTypeValue.InPourcent : MoveTypeValue.InPixel;
+			yType = tokens[1].indexOf("p") > 0 || tokens[0].indexOf("%") > 0? MoveTypeValue.InPourcent : MoveTypeValue.InPixel;
 			tokens[0] = tokens[0].replace("p", "");
 			tokens[1] = tokens[1].replace("p", "");
+			tokens[0] = tokens[0].replace("%", "");
+			tokens[1] = tokens[1].replace("%", "");
 			xPx = Float.parseFloat(tokens[0]);
 			yPx = Float.parseFloat(tokens[1]);
 		} catch (Exception e) {
