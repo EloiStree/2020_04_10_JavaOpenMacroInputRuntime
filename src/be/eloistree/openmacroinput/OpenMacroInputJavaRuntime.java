@@ -32,6 +32,7 @@ import javax.swing.JTextArea;
 import be.eloistree.openmacroinput.OsUtility.OS;
 import be.eloistree.openmacroinput.command.RobotCommand;
 import be.eloistree.openmacroinput.convertiontables.KeyEventAsString;
+import be.eloistree.openmacroinput.window.CmdUtility;
 
 //java -jar C:\..\JarFileName.jar
 public class OpenMacroInputJavaRuntime {
@@ -46,7 +47,6 @@ public class OpenMacroInputJavaRuntime {
 	public static ExecuteCommandWithRobot executer;
 	public static void main(String[] args) throws IOException {
 
-		
 		println("Open Macro Input (Java)  ");
 		setPortAndLockerFromMainArgs(args);
 		displayFrameToDebugAndCloseProcess(args);

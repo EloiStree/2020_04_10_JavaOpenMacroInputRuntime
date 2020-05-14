@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import be.eloistree.openmacroinput.command.PastCommand;
+import be.eloistree.openmacroinput.OsUtility.OS;
 import be.eloistree.openmacroinput.command.CopyPastCommand;
 import be.eloistree.openmacroinput.command.EmbraceCommand;
 import be.eloistree.openmacroinput.command.EmbracePerLineCommand;
@@ -18,6 +19,8 @@ import be.eloistree.openmacroinput.command.MouseMoveCommand.MoveType;
 import be.eloistree.openmacroinput.command.MouseMoveCommand.MoveTypeValue;
 import be.eloistree.openmacroinput.command.MouseMoveCommand;
 import be.eloistree.openmacroinput.command.RobotCommand;
+import be.eloistree.openmacroinput.command.UnicodeCommand;
+import be.eloistree.openmacroinput.command.WindowCmdLineToExecuteCommand;
 import be.eloistree.openmacroinput.enums.PressType;
 
 public class CommandParser {
@@ -34,11 +37,15 @@ public class CommandParser {
 	public ArrayList<RobotCommand> getCommandsFrom(String packageToProcess) {
 		ArrayList<RobotCommand> result = new ArrayList<RobotCommand>();
 		RobotCommandRef robotCommand = new RobotCommandRef();
-
-		if (isItSomeShortcutCommandsV2(packageToProcess, result)) {
-		} else if (isItCopyPastCommand(packageToProcess, robotCommand)) {
+		
+		if (isItSomeShortcutCommandsV2(packageToProcess, result)) {}
+		else if (isItCopyPastCommand(packageToProcess, robotCommand)) {
 			result.add(robotCommand.ref);
-		} else if (isItKeyStrokeCommand(packageToProcess, robotCommand)) {
+		} 
+		else if (isItClipboardCommand(packageToProcess, result)) {}
+		else if (isItKeyStrokeCommand(packageToProcess, robotCommand)) {
+			result.add(robotCommand.ref);
+		} else if (isItUnicodeCommand(packageToProcess, robotCommand)) {
 			result.add(robotCommand.ref);
 		} else if (isItMouseClickCommand(packageToProcess, robotCommand)) {
 			result.add(robotCommand.ref);
@@ -48,14 +55,14 @@ public class CommandParser {
 			result.add(robotCommand.ref);
 		} else if (isItExitOrStopCommand(packageToProcess, robotCommand)) {
 			result.add(robotCommand.ref);
-		} else if (isItExecuteWindowCommand(packageToProcess, robotCommand)) {
-			result.add(robotCommand.ref);
-		} else if (isItOpenWebPageCommand(packageToProcess, robotCommand)) {
+		}  else if (isItOpenWebPageCommand(packageToProcess, robotCommand)) {
 			result.add(robotCommand.ref);
 		} else if (isItEmbraceCommand(packageToProcess, robotCommand)) {
 			result.add(robotCommand.ref);
 		} else if (isItEmbracePerLineCommand(packageToProcess, robotCommand)) {
 			result.add(robotCommand.ref);
+		} else if (isItWindowCommandLineCommand(packageToProcess, result)) {
+			
 		}
 
 		return result;
@@ -140,17 +147,17 @@ public class CommandParser {
 		
 		String word = shortcut.substring(0, shortcut.length() - 1);
 		char arrow = shortcut.charAt(shortcut.length() - 1);
-		System.out.println(">s: " + word + " " + arrow);
+		//System.out.println(">s: " + word + " " + arrow);
 		PressType press = PressType.Stroke;
 		if (arrow == '↓')
 			press = PressType.Press;
 		else if (arrow == '↑')
 			press = PressType.Release;
 
-		if (IsMouseShortcut(result, word, press));
+		if (IsDeveloperKeyShortcut(result, word, press));
+		else if (IsMouseShortcut(result, word, press));
 		else if (IsJavaKeyShortcut(result, word, press));
 		else if (IsUserKeyShortcut(result, word, press));
-		else if (IsDeveloperKeyShortcut(result, word, press));
 	}
 	
 	
@@ -158,20 +165,41 @@ public class CommandParser {
 	private boolean IsDeveloperKeyShortcut(ArrayList<RobotCommand> result, String content, PressType pressType) {
 
 		content = content.toLowerCase();
-		if (content == "copypast") {
-
-			if (pressType == PressType.Stroke || pressType == PressType.Release)
+		
+		if (content.contentEquals( "copypast")) {
+			if (pressType == PressType.Stroke || pressType == PressType.Press )
 				result.add(new CopyPastCommand(CopyPastCommand.Type.Copy));
-			if (pressType == PressType.Stroke || pressType == PressType.Press)
+			if (pressType == PressType.Stroke || pressType == PressType.Release)
 				result.add(new CopyPastCommand(CopyPastCommand.Type.Past));
 			return true;
 		}
-		if (content == "cutpast") {
-
-			if (pressType == PressType.Stroke || pressType == PressType.Release)
-				result.add(new CopyPastCommand(CopyPastCommand.Type.Cut));
+		else if (content .contentEquals("cutpast")) {
 			if (pressType == PressType.Stroke || pressType == PressType.Press)
+				result.add(new CopyPastCommand(CopyPastCommand.Type.Cut));
+			if (pressType == PressType.Stroke || pressType == PressType.Release)
 				result.add(new CopyPastCommand(CopyPastCommand.Type.Past));
+			return true;
+		}else if (content .contentEquals( "copy")) {
+				result.add(new CopyPastCommand(CopyPastCommand.Type.Copy));
+			return true;
+		}else if (content .contentEquals("cut")) {
+				result.add(new CopyPastCommand(CopyPastCommand.Type.Cut));
+			return true;
+		}else if (content.contentEquals( "past")) {
+				result.add(new CopyPastCommand(CopyPastCommand.Type.Past));
+			return true;
+		}
+		else if (content .contentEquals( "ctrlcmd") || content .contentEquals( "ctrlorcmd")) {
+			if (OsUtility.getOS() == OS.MAC)
+				result.add(new KeyStrokeCommand("VK_META",pressType));
+			else
+				result.add(new KeyStrokeCommand("VK_CONTROL",pressType));
+			return true;
+		}else if (content .contentEquals( "cmd")) {
+			result.add(new KeyStrokeCommand("VK_META",pressType));
+			return true;
+		}else if (content.contentEquals( "ctrl")) {
+			result.add(new KeyStrokeCommand("VK_CONTROL",pressType));
 			return true;
 		}
 
@@ -205,31 +233,31 @@ public class CommandParser {
 
 	private boolean IsMouseShortcut(ArrayList<RobotCommand> result, String content, PressType pressType) {
 		content = content.toLowerCase();
-		if (content == "mouseclick" || content == "mouseleftclick" || content == "leftclick") {
+		if (content.contentEquals( "mouseclick") || content .contentEquals("mouseleftclick") || content .contentEquals( "leftclick")) {
 			result.add(new MouseClickCommand(MouseButton.Left, pressType));
 			return true;
 		}
-		if (content == "mouserightclick" || content == "rightclick") {
+		if (content .contentEquals( "mouserightclick") || content .contentEquals( "rightclick")) {
 			result.add(new MouseClickCommand(MouseButton.Right, pressType));
 			return true;
 		}
-		if (content == "mousemiddleclick" || content == "middleclick") {
+		if (content .contentEquals( "mousemiddleclick") || content .contentEquals( "middleclick")) {
 			result.add(new MouseClickCommand(MouseButton.Middle, pressType));
 			return true;
 		}
-		if (content == "doubleclick" || content == "doubleleftclick") {
+		if (content.contentEquals( "doubleclick") || content .contentEquals("doubleleftclick")) {
 
 			result.add(new MouseClickCommand(MouseButton.Left, PressType.Stroke));
 			result.add(new MouseClickCommand(MouseButton.Left, PressType.Stroke));
 			return true;
 		}
-		if (content == "doublerightclick") {
+		if (content .contentEquals( "doublerightclick")) {
 
 			result.add(new MouseClickCommand(MouseButton.Right, PressType.Stroke));
 			result.add(new MouseClickCommand(MouseButton.Right, PressType.Stroke));
 			return true;
 		}
-		if (content == "scroll") {
+		if (content .contentEquals("scroll")) {
 			result.add(new MouseScrollCommand(pressType == PressType.Press ? -1 : 1));
 			return true;
 		}
@@ -261,6 +289,8 @@ public class CommandParser {
 	}
 
 	private boolean isItMouseMoveCommand(String packageToProcess, RobotCommandRef robotCommand) {
+		
+		
 		if (!(packageToProcess.startsWith("mm:") || packageToProcess.startsWith("ma:")))
 			return false;
 		if (packageToProcess.length() <= 3)
@@ -376,14 +406,34 @@ public class CommandParser {
 		cmdOut.ref = new PastCommand(packageToProcess.substring(5));
 		return true;
 	}
-
-	private boolean isItExecuteWindowCommand(String packageToProcess, RobotCommandRef robotCommand) {
-		if (!(packageToProcess.startsWith("wincmd:")))
+	private boolean isItClipboardCommand(String packageToProcess, ArrayList<RobotCommand> result) {
+		if (!(packageToProcess.toLowerCase().startsWith("clipboard:")))
 			return false;
-		// TODO Auto-generated method stub
-		return false;
+		if (packageToProcess.length() <= 10)
+			return false;
+		
+		String content = packageToProcess.substring(10).toLowerCase().trim();
+		if(content.contentEquals("copypast")) {
+			result.add( new CopyPastCommand(CopyPastCommand.Type.Copy) );	
+			result.add( new CopyPastCommand(CopyPastCommand.Type.Past) );			
+		} 	
+		else if(content.contentEquals("cutpast")) {
+			result.add( new CopyPastCommand(CopyPastCommand.Type.Cut) );
+			result.add( new CopyPastCommand(CopyPastCommand.Type.Past) );			
+		}
+		else if(content.contentEquals("cut")) {
+			result.add( new CopyPastCommand(CopyPastCommand.Type.Cut) );		
+		}	
+		else if(content.contentEquals("past")) {
+			result.add( new CopyPastCommand(CopyPastCommand.Type.Past) );			
+		}
+		else if(content.contentEquals("copy")) {
+			result.add( new CopyPastCommand(CopyPastCommand.Type.Copy) );
+		}
+		return true;
 	}
 
+	
 	private boolean isItOpenWebPageCommand(String packageToProcess, RobotCommandRef robotCommand) {
 		if (!(packageToProcess.startsWith("url:")))
 			return false;
@@ -393,5 +443,47 @@ public class CommandParser {
 		robotCommand.ref = new OpenURLCommand(packageToProcess.substring(4).trim());
 		return true;
 	}
+	private boolean isItUnicodeCommand(String packageToProcess,  RobotCommandRef robotCommand) {
+		if (!(packageToProcess.toLowerCase().startsWith("unicode:")))
+			return false;
+		if (packageToProcess.length() <= 8)
+			return false;
+		
+		String content = packageToProcess.substring(8).toLowerCase().trim();
+		boolean parseSucceed=false;
+		int unicodeId;
+		if(content.indexOf("u+")>-1|| content.indexOf("0x")>-1)
+		{
+			try {
+			
+			String hex = content.substring(2);
+			unicodeId = Integer.parseInt(hex, 16);
+			parseSucceed=true;
+			}catch(Exception e) {System.out.println("Can't parse to unicode:"+content); return false;}
+		}
+		else {
+			
+			try {
+				
+				unicodeId = Integer.parseInt(content);
+				parseSucceed=true;
+			}catch(Exception e) {System.out.println("Can't parse to unicode:"+content);return false;}
+		}
+		if(!parseSucceed)
+			return false;
+		robotCommand.ref = new UnicodeCommand(unicodeId);
+		return true;
+	}
+	
+	private boolean isItWindowCommandLineCommand(String packageToProcess, ArrayList<RobotCommand> result) {
+		if (!(packageToProcess.startsWith("cmd:")))
+			return false;
+		if (packageToProcess.length() <= 4)
+			return false;
+		String content = packageToProcess.substring(4);
+		result.add(new WindowCmdLineToExecuteCommand(content.split("裂")));
 
+		return true;
+	}
+	
 }

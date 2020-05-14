@@ -32,18 +32,23 @@ import be.eloistree.openmacroinput.command.MouseScrollCommand;
 import be.eloistree.openmacroinput.command.OpenURLCommand;
 import be.eloistree.openmacroinput.command.PastCommand;
 import be.eloistree.openmacroinput.command.RobotCommand;
+import be.eloistree.openmacroinput.command.UnicodeCommand;
+import be.eloistree.openmacroinput.command.WindowCmdLineToExecuteCommand;
 import be.eloistree.openmacroinput.enums.PressType;
+import be.eloistree.openmacroinput.window.CmdUtility;
 
 public class ExecuteCommandWithRobot {
 
 	public Robot robot;
 	public Clipboard clipboard;
 	public Toolkit toolkit;
+	public CmdUtility cmdUtility;
 	
 	public ExecuteCommandWithRobot() {
 		
 		try {
 			robot = new Robot();
+			cmdUtility= new CmdUtility(true,true);
 			clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 			toolkit = Toolkit.getDefaultToolkit();
 		} catch (AWTException e) {
@@ -62,12 +67,29 @@ public class ExecuteCommandWithRobot {
 		else if( cmd instanceof  EmbraceCommand ) execute((EmbraceCommand)cmd);
 		else if( cmd instanceof  CopyPastCommand ) execute((CopyPastCommand)cmd);
 		else if( cmd instanceof  EmbracePerLineCommand ) execute((EmbracePerLineCommand)cmd);
+		else if( cmd instanceof  UnicodeCommand ) execute((UnicodeCommand)cmd);	
+		else if( cmd instanceof  WindowCmdLineToExecuteCommand ) execute((WindowCmdLineToExecuteCommand)cmd);
 		else {
 			System.out.println("Command not take in charge: "+cmd);
 		}
 		
 	}
-	
+	public void execute(UnicodeCommand cmd) {
+		if(cmd==null) return;
+		PastText(cmd.getUnicodeAsString());
+	}
+	public void execute(WindowCmdLineToExecuteCommand cmd) {
+		if(cmd==null) return;
+		try {
+			String [] t =cmd.GetCommandLines();
+			for (String str : cmd.GetCommandLines()) {
+				cmdUtility.execute(str);				
+			}
+		}catch(Exception e) {
+			System.err.println("Fail to executre cmd:"+String.join(" ", cmd.GetCommandLines()));
+		}
+		
+	}
 	
 	public void execute(KeyStrokeCommand cmd) {
 		if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Press )
@@ -84,10 +106,10 @@ public class ExecuteCommandWithRobot {
 	}
 	
 	public void execute(MouseClickCommand cmd) {
-		if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Press )
-		robot.mousePress(GetIdFrom(cmd.m_buttonType));
-		if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Release )
-		robot.mouseRelease(GetIdFrom(cmd.m_buttonType));
+		if(cmd.getPressType()==PressType.Stroke || cmd.getPressType()==PressType.Press )
+		robot.mousePress((cmd.getButtonJavaId()));
+		if(cmd.getPressType()==PressType.Stroke || cmd.getPressType()==PressType.Release )
+		robot.mouseRelease((cmd.getButtonJavaId()));
 	}
 	public int GetIdFrom(MouseClickCommand.MouseButton mouseButtonType) {
 		if(mouseButtonType==MouseClickCommand.MouseButton.Left )
@@ -184,7 +206,7 @@ public void execute(CopyPastCommand cmd) {
 			if(cmd.m_copyPastType==Type.Cut)
 				CutText();
 			if(cmd.m_copyPastType==Type.Past)
-				PastText("");
+				PastText(null);
 
 		} catch (IllegalStateException e) {
 			System.out.println("Did not send message... Retry");
@@ -224,6 +246,16 @@ public void execute(EmbraceCommand cmd) {
 	
 }
 	private void PastText(String txt ) {
+		if(txt==null || txt.length()<0) {
+			
+			try {
+				txt = (String) clipboard.getData(DataFlavor.stringFlavor);
+			} catch (UnsupportedFlavorException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		StringSelection text = new StringSelection(txt);
 		try {
 		    clipboard.setContents(text, text);
