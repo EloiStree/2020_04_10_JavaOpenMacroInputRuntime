@@ -117,7 +117,7 @@ public class CommandParser {
 
 	//NEED TO BE IMPROVE BUT I DONT MASTER ENOUGH REGEX
 	private static String regexText = "\\[\\[[^\\[\\]]+\\]\\]";
-	private static String regexCommand = "\\w+[↕↓↑]";
+	private static String regexCommand = "\\w+[↑↓↕]";
 
 	private boolean isItSomeShortcutCommandsV2(String packageToProcess, ArrayList<RobotCommand> result) {
 		if (!(packageToProcess.startsWith("sc:")))
@@ -270,7 +270,7 @@ public class CommandParser {
 	}
 	private static ArrayList<String> FindArrowShortcut(String value) {
 		ArrayList<String> shortcut = new ArrayList<String>();
-		String pattern = "\\w+[↕↓↑]";
+		String pattern = "\\w+[↑↓↕]";
 		Pattern r = Pattern.compile(pattern);
 		Matcher m = r.matcher(value);
 		while (m.find()) {
@@ -484,7 +484,7 @@ public class CommandParser {
 		if (packageToProcess.length() <= 4)
 			return false;
 		String content = packageToProcess.substring(4);
-		result.add(new WindowCmdLineToExecuteCommand(content.split("裂")));
+		result.add(new WindowCmdLineToExecuteCommand(content.split("è£‚")));
 
 		return true;
 	}

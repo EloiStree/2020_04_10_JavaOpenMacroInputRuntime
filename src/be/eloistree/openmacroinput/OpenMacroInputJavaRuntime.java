@@ -12,6 +12,9 @@ import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -223,17 +226,49 @@ public class OpenMacroInputJavaRuntime {
 	private static String GetWantedShortCutOfUserFromFile() throws IOException {
 		Path fPath = Paths.get("KeyShortcut.txt");
 		if (!Files.exists(fPath)) {
-			Files.writeString(fPath, KeyEventId.GetDefaultKeysShortcutTableAsText());
+			
+			writeFile(fPath, KeyEventId.GetDefaultKeysShortcutTableAsText());
 			String.join("\n", KeyEventId.GetAllEnumNames());
 		}
-		return Files.readString(fPath);
+		return readFile(fPath);
 	}
 
 	private static void writeListOfKeyAvailaibleAsFileForUser() throws IOException {
 		Path fKeyAvailaible = Paths.get("AllStrokableKeys.txt");
 		if (!Files.exists(fKeyAvailaible)) {
-			Files.writeString(fKeyAvailaible, String.join("\n", KeyEventId.GetAllEnumNames()));
+			writeFile(fKeyAvailaible, String.join("\n", KeyEventId.GetAllEnumNames()));
 		}
+	}
+	
+	public static void writeFile(Path absolutePath, String text)
+	{
+		writeFile(absolutePath.toAbsolutePath().toString(), text);
+	}	
+	public static void writeFile(String absolutePath, String text) {
+		try(FileWriter fileWriter = new FileWriter(absolutePath)) {
+		    fileWriter.write(text);
+		    fileWriter.close();
+		} catch (IOException e) {
+		    // Cxception handling
+		}
+		
+		
+	}
+	public static String readFile(Path absolutePath ) {
+		return readFile(absolutePath.toAbsolutePath().toString());
+		
+	}
+	public static String readFile(String absolutePath ) {
+		String content = "";
+	    try
+	    {
+	        content = new String ( Files.readAllBytes( Paths.get(absolutePath) ) );
+	    } 
+	    catch (IOException e) 
+	    {
+	        e.printStackTrace();
+	    }
+	    return content;
 	}
 
 	public static synchronized void print(String str) {
