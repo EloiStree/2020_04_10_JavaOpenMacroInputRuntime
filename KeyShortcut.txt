@@ -23,10 +23,10 @@ VK_MINUS: -
 VK_MULTIPLY: *
 VK_DIVIDE: /
 VK_KP_DOWN: .
-VK_UP: Up
-VK_LEFT: Left
-VK_RIGHT: Right
-VK_DOWN: Down
+VK_UP: up
+VK_LEFT: left
+VK_RIGHT: right
+VK_DOWN: down
 VK_SPACE: Space
 VK_CONTROL: Ctrl
 VK_ALT: Alt

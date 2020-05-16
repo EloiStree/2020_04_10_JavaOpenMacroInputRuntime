@@ -9,6 +9,7 @@ import be.eloistree.openmacroinput.OsUtility.OS;
 import be.eloistree.openmacroinput.command.CopyPastCommand;
 import be.eloistree.openmacroinput.command.EmbraceCommand;
 import be.eloistree.openmacroinput.command.EmbracePerLineCommand;
+import be.eloistree.openmacroinput.command.ImageURLToClipboardCommand;
 import be.eloistree.openmacroinput.command.KeyStrokeCommand;
 import be.eloistree.openmacroinput.command.KillTheProgramCommand;
 import be.eloistree.openmacroinput.command.MouseClickCommand;
@@ -60,6 +61,8 @@ public class CommandParser {
 		} else if (isItEmbraceCommand(packageToProcess, robotCommand)) {
 			result.add(robotCommand.ref);
 		} else if (isItEmbracePerLineCommand(packageToProcess, robotCommand)) {
+			result.add(robotCommand.ref);
+		}else if (isItImageToClipboardCommand(packageToProcess, robotCommand)) {
 			result.add(robotCommand.ref);
 		} else if (isItWindowCommandLineCommand(packageToProcess, result)) {
 			
@@ -482,6 +485,16 @@ public class CommandParser {
 			return false;
 		String content = packageToProcess.substring(4);
 		result.add(new WindowCmdLineToExecuteCommand(content.split("裂")));
+
+		return true;
+	}
+	private boolean isItImageToClipboardCommand(String packageToProcess,  RobotCommandRef robotCommand) {
+		if (!(packageToProcess.startsWith("img2clip:")))
+			return false;
+		if (packageToProcess.length() <= 9)
+			return false;
+		String content = packageToProcess.substring(9);
+		robotCommand.ref= new ImageURLToClipboardCommand(content);
 
 		return true;
 	}

@@ -16,11 +16,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import be.eloistree.copyfromweb.ImageToClipboard;
 import be.eloistree.openmacroinput.OsUtility.OS;
 import be.eloistree.openmacroinput.command.CopyPastCommand;
 import be.eloistree.openmacroinput.command.CopyPastCommand.Type;
 import be.eloistree.openmacroinput.command.EmbraceCommand;
 import be.eloistree.openmacroinput.command.EmbracePerLineCommand;
+import be.eloistree.openmacroinput.command.ImageURLToClipboardCommand;
 import be.eloistree.openmacroinput.command.KeyStrokeCommand;
 import be.eloistree.openmacroinput.command.KillTheProgramCommand;
 import be.eloistree.openmacroinput.command.MouseClickCommand;
@@ -69,11 +71,17 @@ public class ExecuteCommandWithRobot {
 		else if( cmd instanceof  EmbracePerLineCommand ) execute((EmbracePerLineCommand)cmd);
 		else if( cmd instanceof  UnicodeCommand ) execute((UnicodeCommand)cmd);	
 		else if( cmd instanceof  WindowCmdLineToExecuteCommand ) execute((WindowCmdLineToExecuteCommand)cmd);
+		else if( cmd instanceof  ImageURLToClipboardCommand ) execute((ImageURLToClipboardCommand)cmd);
 		else {
 			System.out.println("Command not take in charge: "+cmd);
 		}
 		
 	}
+	public void execute(ImageURLToClipboardCommand cmd) {
+		if(cmd==null) return;
+		new ImageToClipboard(cmd.getUrl());
+	}
+	
 	public void execute(UnicodeCommand cmd) {
 		if(cmd==null) return;
 		PastText(cmd.getUnicodeAsString());
@@ -92,10 +100,26 @@ public class ExecuteCommandWithRobot {
 	}
 	
 	public void execute(KeyStrokeCommand cmd) {
-		if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Press )
+		if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Press ) {
+			
 			robot.keyPress (GetIdFrom(cmd.m_javaKeyName));
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 			if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Release )
-			robot.keyRelease(GetIdFrom(cmd.m_javaKeyName));
+			{				
+				robot.keyRelease(GetIdFrom(cmd.m_javaKeyName));
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}		
 	}
 	
 	private int GetIdFrom(String javaKeyName) {

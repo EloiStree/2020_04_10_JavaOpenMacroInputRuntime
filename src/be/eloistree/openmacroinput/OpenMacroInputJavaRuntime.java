@@ -56,13 +56,7 @@ public class OpenMacroInputJavaRuntime {
 		launchThreadThatListenToUDPToCreateQueue();
 		executer = new ExecuteCommandWithRobot();
 		
-		/*
-		 * 
-		 * 
-		 * if (jTextArea != null) jTextArea.setText("IP: " + InetAddress.getLocalHost()
-		 * + " Port:" + port + "\n" + String.join("\n", history));
-		 * 
-		 */
+		
 
 		
 		String lastPackage="";
@@ -99,6 +93,7 @@ public class OpenMacroInputJavaRuntime {
 					ArrayList<RobotCommand> cmds = parser.getCommandsFrom(packageToProcess);
 					System.out.println("Command found:"+cmds.size());
 					for (int i = 0; i < cmds.size(); i++) {
+						
 						executer.execute(cmds.get(i));
 						
 						lastValidate= cmds.get(i).toString();
@@ -124,12 +119,17 @@ public class OpenMacroInputJavaRuntime {
 	}
 	public static void setTextDisplayed(String text, boolean withIpInfo) {
 		if(withIpInfo)
-			jTextArea.setText(getTextIpPortDescription()+"\n"+text);
+			jTextArea.setText(getTextIpPortDescription()+getPatreonSupportLink()+"\n"+text);
 		else 
 			jTextArea.setText(text);
 		frame.update(frame.getGraphics());
 		//jTextArea.update(jTextArea.getGraphics());
 	}
+	private static String getPatreonSupportLink() {
+		return "Hope this tool is helping you. 🤘\n"
+	+"https://eloistree.page/donation\n";
+	}
+
 	private static void createOrLoadUserShortCutPreference() throws IOException {
 		String keysShortcutTable = GetWantedShortCutOfUserFromFile();
 		keysUserShortcut = new KeyEventIdPool(keysShortcutTable);
@@ -190,10 +190,10 @@ public class OpenMacroInputJavaRuntime {
 
 		try {
 			jTextArea = new JTextArea("IP: " + InetAddress.getLocalHost() + " Port:" + port + "\n" + "Args: "
-					+ String.join(" ", args) + "\n" + "Commands (P ress, R elease, S troke) :\n"
+					+ String.join(" ", args) + "\n"+getPatreonSupportLink()+ "\n" + "Commands (P ress, R elease, S troke) :\n"
 					+ "- ks:[keyname:string]:\n" + "- ms:[0,1,2]\n" + "- wh:[wheel:int]\n" + "- mm:[x:int]:[y:int]\n"
 					+ "- ct:[text]\n" + "Code: https://github.com/EloiStree/2020_02_09_OpenMacroInput\n"
-					+ "Support & contact: https://www.patreon.com/eloistree\n");
+					);
 			jTextArea.setBackground(new Color(249f / 255f, 104f / 255f, 84f / 255f, 1f));
 
 			frame.getContentPane().add(jTextArea);
