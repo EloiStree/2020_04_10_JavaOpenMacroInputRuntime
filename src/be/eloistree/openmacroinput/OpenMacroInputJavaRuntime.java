@@ -34,10 +34,8 @@ import be.eloistree.openmacroinput.command.RobotCommand;
 import be.eloistree.openmacroinput.convertiontables.KeyEventAsString;
 import be.eloistree.openmacroinput.window.CmdUtility;
 import be.eloistree.string.StringPlus;
-import com.sun.tools.javac.util.Paths;
 import java.io.BufferedReader;
 import java.nio.charset.Charset;
-import sun.nio.cs.StandardCharsets;
 
 //java -jar C:\..\JarFileName.jar
 public class OpenMacroInputJavaRuntime {
@@ -133,7 +131,7 @@ public class OpenMacroInputJavaRuntime {
 		//jTextArea.update(jTextArea.getGraphics());
 	}
 	private static String getPatreonSupportLink() {
-		return "Hope this tool is helping you. 🤘\n"
+		return "Hope this tool is helping you. 🤘 \n"
 	+"https://eloistree.page/donation\n";
 	}
 
