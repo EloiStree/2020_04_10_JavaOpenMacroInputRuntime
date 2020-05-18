@@ -117,7 +117,7 @@ public class CommandParser {
 
 	//NEED TO BE IMPROVE BUT I DONT MASTER ENOUGH REGEX
 	private static String regexText = "\\[\\[[^\\[\\]]+\\]\\]";
-	private static String regexCommand = "\\w+[↑↓↕]";
+	private static String regexCommand = "\\w+[↓↑↕]";
 
 	private boolean isItSomeShortcutCommandsV2(String packageToProcess, ArrayList<RobotCommand> result) {
 		if (!(packageToProcess.startsWith("sc:")))
@@ -304,6 +304,8 @@ public class CommandParser {
 			moveTypeValue = MoveType.Add;
 
 		String content = packageToProcess.substring(3).trim();
+		content= content.replace("px", "");
+		content= content.replace("PX", "");
 		String[] tokens = content.split(":");
 		if (tokens.length != 2)
 			return false;

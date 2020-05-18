@@ -1,5 +1,7 @@
 package be.eloistree.openmacroinput.command;
 
+import be.eloistree.string.StringPlus;
+
 public class WindowCmdLineToExecuteCommand extends RobotCommand{
 	String [] m_commandLines;
 	public WindowCmdLineToExecuteCommand(String []cmdLines) {
@@ -14,6 +16,6 @@ public class WindowCmdLineToExecuteCommand extends RobotCommand{
 	}
 	@Override
 	public String toString() {
-		return String.format("%s:%s", "CMD",String.join(" || ", m_commandLines));
+		return String.format("%s:%s", "CMD",StringPlus.join(" || ", m_commandLines));
 	}
 }

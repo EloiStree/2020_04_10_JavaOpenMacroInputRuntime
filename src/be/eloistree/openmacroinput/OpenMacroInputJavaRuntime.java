@@ -36,6 +36,7 @@ import be.eloistree.openmacroinput.OsUtility.OS;
 import be.eloistree.openmacroinput.command.RobotCommand;
 import be.eloistree.openmacroinput.convertiontables.KeyEventAsString;
 import be.eloistree.openmacroinput.window.CmdUtility;
+import be.eloistree.string.StringPlus;
 
 //java -jar C:\..\JarFileName.jar
 public class OpenMacroInputJavaRuntime {
@@ -193,7 +194,7 @@ public class OpenMacroInputJavaRuntime {
 
 		try {
 			jTextArea = new JTextArea("IP: " + InetAddress.getLocalHost() + " Port:" + port + "\n" + "Args: "
-					+ String.join(" ", args) + "\n"+getPatreonSupportLink()+ "\n" + "Commands (P ress, R elease, S troke) :\n"
+					+ StringPlus.join(" ", args) + "\n"+getPatreonSupportLink()+ "\n" + "Commands (P ress, R elease, S troke) :\n"
 					+ "- ks:[keyname:string]:\n" + "- ms:[0,1,2]\n" + "- wh:[wheel:int]\n" + "- mm:[x:int]:[y:int]\n"
 					+ "- ct:[text]\n" + "Code: https://github.com/EloiStree/2020_02_09_OpenMacroInput\n"
 					);
@@ -228,7 +229,7 @@ public class OpenMacroInputJavaRuntime {
 		if (!Files.exists(fPath)) {
 			
 			writeFile(fPath, KeyEventId.GetDefaultKeysShortcutTableAsText());
-			String.join("\n", KeyEventId.GetAllEnumNames());
+			StringPlus.join("\n", KeyEventId.GetAllEnumNames());
 		}
 		return readFile(fPath);
 	}
@@ -236,7 +237,7 @@ public class OpenMacroInputJavaRuntime {
 	private static void writeListOfKeyAvailaibleAsFileForUser() throws IOException {
 		Path fKeyAvailaible = Paths.get("AllStrokableKeys.txt");
 		if (!Files.exists(fKeyAvailaible)) {
-			writeFile(fKeyAvailaible, String.join("\n", KeyEventId.GetAllEnumNames()));
+			writeFile(fKeyAvailaible, StringPlus.join("\n", KeyEventId.GetAllEnumNames()));
 		}
 	}
 	

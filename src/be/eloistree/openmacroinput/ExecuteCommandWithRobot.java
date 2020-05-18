@@ -38,6 +38,7 @@ import be.eloistree.openmacroinput.command.UnicodeCommand;
 import be.eloistree.openmacroinput.command.WindowCmdLineToExecuteCommand;
 import be.eloistree.openmacroinput.enums.PressType;
 import be.eloistree.openmacroinput.window.CmdUtility;
+import be.eloistree.string.StringPlus;
 
 public class ExecuteCommandWithRobot {
 
@@ -50,7 +51,7 @@ public class ExecuteCommandWithRobot {
 		
 		try {
 			robot = new Robot();
-			cmdUtility= new CmdUtility(true,true);
+			cmdUtility= new  CmdUtility(false, false);
 			clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 			toolkit = Toolkit.getDefaultToolkit();
 		} catch (AWTException e) {
@@ -77,24 +78,37 @@ public class ExecuteCommandWithRobot {
 		}
 		
 	}
+	ImageURLToClipboardCommand c;
 	public void execute(ImageURLToClipboardCommand cmd) {
 		if(cmd==null) return;
-		new ImageToClipboard(cmd.getUrl());
+		c=  cmd;
+		Thread thread= new Thread() {
+		      public void run() {
+		  		new ImageToClipboard(c.getUrl());
+		        }
+		      };
+		      thread.start();	
 	}
 	
 	public void execute(UnicodeCommand cmd) {
 		if(cmd==null) return;
 		PastText(cmd.getUnicodeAsString());
 	}
+	String s ="";
 	public void execute(WindowCmdLineToExecuteCommand cmd) {
 		if(cmd==null) return;
 		try {
-			String [] t =cmd.GetCommandLines();
 			for (String str : cmd.GetCommandLines()) {
-				cmdUtility.execute(str);				
+				s =str;
+				Thread thread= new Thread() {
+				      public void run() {
+							cmdUtility.execute(s);
+				        }
+				      };
+				      thread.start();				
 			}
 		}catch(Exception e) {
-			System.err.println("Fail to executre cmd:"+String.join(" ", cmd.GetCommandLines()));
+			System.err.println("Fail to executre cmd:"+StringPlus.join(" ", cmd.GetCommandLines()));
 		}
 		
 	}
