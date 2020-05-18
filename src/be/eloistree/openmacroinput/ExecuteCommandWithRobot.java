@@ -187,10 +187,10 @@ public class ExecuteCommandWithRobot {
 		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
 		    try {
 				Desktop.getDesktop().browse(new URI(cmd.m_url));
-			} catch (IOException | URISyntaxException e) {
+			} catch ( URISyntaxException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			}catch (IOException e) {			e.printStackTrace();		}
 		}
 	}
 	
@@ -288,10 +288,10 @@ public void execute(EmbraceCommand cmd) {
 			
 			try {
 				txt = (String) clipboard.getData(DataFlavor.stringFlavor);
-			} catch (UnsupportedFlavorException | IOException e) {
+			} catch (UnsupportedFlavorException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			}catch (IOException e) {			e.printStackTrace();		}
 		}
 		
 		StringSelection text = new StringSelection(txt);
@@ -343,10 +343,10 @@ public void execute(EmbraceCommand cmd) {
 		String txt="";
 		try {
 			txt = (String) clipboard.getData(DataFlavor.stringFlavor);
-		} catch (UnsupportedFlavorException | IOException e) {
+		} catch (UnsupportedFlavorException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}catch (IOException e) {			e.printStackTrace();		}
 		return txt;
 	}
 	private String CutText() {
@@ -374,10 +374,8 @@ public void execute(EmbraceCommand cmd) {
 		String txt="";
 		try {
 			txt = (String) clipboard.getData(DataFlavor.stringFlavor);
-		} catch (UnsupportedFlavorException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} catch (UnsupportedFlavorException e) {e.printStackTrace();}
+		catch (IOException e) {			e.printStackTrace();		}
 		return txt;
 	}
 }

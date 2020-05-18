@@ -11,6 +11,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -246,13 +247,27 @@ public class OpenMacroInputJavaRuntime {
 		writeFile(absolutePath.toAbsolutePath().toString(), text);
 	}	
 	public static void writeFile(String absolutePath, String text) {
-		try(FileWriter fileWriter = new FileWriter(absolutePath)) {
-		    fileWriter.write(text);
-		    fileWriter.close();
-		} catch (IOException e) {
-		    // Cxception handling
+		BufferedWriter writer = null;
+		try
+		{
+		    writer = new BufferedWriter( new FileWriter( absolutePath));
+		    writer.write( text);
+
 		}
-		
+		catch ( IOException e)
+		{
+		}
+		finally
+		{
+		    try
+		    {
+		        if ( writer != null)
+		        writer.close( );
+		    }
+		    catch ( IOException e)
+		    {
+		    }
+		}
 		
 	}
 	public static String readFile(Path absolutePath ) {
