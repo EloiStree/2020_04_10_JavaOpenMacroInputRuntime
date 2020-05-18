@@ -24,6 +24,10 @@ import be.eloistree.openmacroinput.command.UnicodeCommand;
 import be.eloistree.openmacroinput.command.WindowCmdLineToExecuteCommand;
 import be.eloistree.openmacroinput.enums.PressType;
 
+
+
+
+
 public class CommandParser {
 	public class RobotCommandRef {
 		public RobotCommand ref;

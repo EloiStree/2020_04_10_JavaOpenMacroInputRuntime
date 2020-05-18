@@ -22,10 +22,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -38,6 +34,10 @@ import be.eloistree.openmacroinput.command.RobotCommand;
 import be.eloistree.openmacroinput.convertiontables.KeyEventAsString;
 import be.eloistree.openmacroinput.window.CmdUtility;
 import be.eloistree.string.StringPlus;
+import com.sun.tools.javac.util.Paths;
+import java.io.BufferedReader;
+import java.nio.charset.Charset;
+import sun.nio.cs.StandardCharsets;
 
 //java -jar C:\..\JarFileName.jar
 public class OpenMacroInputJavaRuntime {
@@ -78,7 +78,7 @@ public class OpenMacroInputJavaRuntime {
 			if(packageCount>0) {
 				String packageToProcess =dequeueNextPackage();
 				setTextDisplayed("Package Waiting:"+packageCount, true);
-				System.out.println("Deqeue:"+packageToProcess);
+				System.out.println("Deqeue:"+packageToProcess.trim());
 				
 				if(locker.length()>0 && !packageToProcess.startsWith(locker) ) {
 					System.out.println(String.format("Deny (%s,%s):%s",locker, ""+lockDenyCount, packageToProcess));
@@ -86,10 +86,12 @@ public class OpenMacroInputJavaRuntime {
 					packageToProcess="";
 				}
 				else {
+                                    
+                                    
 					if(locker.length()>0) {
 					
 						packageToProcess=packageToProcess.substring(locker.length());	
-						System.out.println("After Locker:"+packageToProcess);
+						System.out.println("After Locker:"+packageToProcess.trim());
 					}
 				} 				
 				lastPackage=packageToProcess;
@@ -124,9 +126,9 @@ public class OpenMacroInputJavaRuntime {
 	}
 	public static void setTextDisplayed(String text, boolean withIpInfo) {
 		if(withIpInfo)
-			jTextArea.setText(getTextIpPortDescription()+getPatreonSupportLink()+"\n"+text);
+			jTextArea.setText(getTextIpPortDescription()+getPatreonSupportLink()+"\n"+text.trim());
 		else 
-			jTextArea.setText(text);
+			jTextArea.setText(text.trim());
 		frame.update(frame.getGraphics());
 		//jTextArea.update(jTextArea.getGraphics());
 	}
@@ -140,6 +142,9 @@ public class OpenMacroInputJavaRuntime {
 		keysUserShortcut = new KeyEventIdPool(keysShortcutTable);
 	}
 
+        
+        
+        
 	public static synchronized int getPackageWaitingCount() {return m_receivedPackage.size();}
 	public static synchronized String dequeueNextPackage(){ return m_receivedPackage.remove(0);}
 	public static LinkedList<String> m_receivedPackage = new LinkedList<String>();
@@ -161,7 +166,9 @@ public class OpenMacroInputJavaRuntime {
 						DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 						server.receive(packet);
 
-						String str = new String(packet.getData(), StandardCharsets.UTF_8);
+                                                Charset cd =Charset.forName("UTF-8");
+                                                
+						String str = new String(packet.getData(), Charset.forName("UTF-8"));
 						System.out.println("P:"+str);
 						addPackageToWait(str);
 						packet.setLength(buffer.length); 
@@ -226,26 +233,24 @@ public class OpenMacroInputJavaRuntime {
 	}
 
 	private static String GetWantedShortCutOfUserFromFile() throws IOException {
-		Path fPath = Paths.get("KeyShortcut.txt");
-		if (!Files.exists(fPath)) {
+            String path ="KeyShortcut.txt";
+                File f = new File(path);
+		if (!f.exists()) {
 			
-			writeFile(fPath, KeyEventId.GetDefaultKeysShortcutTableAsText());
+			writeFile(path, KeyEventId.GetDefaultKeysShortcutTableAsText());
 			StringPlus.join("\n", KeyEventId.GetAllEnumNames());
 		}
-		return readFile(fPath);
+		return readFile(path);
 	}
 
 	private static void writeListOfKeyAvailaibleAsFileForUser() throws IOException {
-		Path fKeyAvailaible = Paths.get("AllStrokableKeys.txt");
-		if (!Files.exists(fKeyAvailaible)) {
-			writeFile(fKeyAvailaible, StringPlus.join("\n", KeyEventId.GetAllEnumNames()));
+            String path ="AllStrokableKeys.txt";
+                File f = new File(path);
+		if (!f.exists()) {
+			writeFile(path, StringPlus.join("\n", KeyEventId.GetAllEnumNames()));
 		}
 	}
 	
-	public static void writeFile(Path absolutePath, String text)
-	{
-		writeFile(absolutePath.toAbsolutePath().toString(), text);
-	}	
 	public static void writeFile(String absolutePath, String text) {
 		BufferedWriter writer = null;
 		try
@@ -270,20 +275,39 @@ public class OpenMacroInputJavaRuntime {
 		}
 		
 	}
-	public static String readFile(Path absolutePath ) {
-		return readFile(absolutePath.toAbsolutePath().toString());
-		
-	}
+	
 	public static String readFile(String absolutePath ) {
-		String content = "";
-	    try
-	    {
-	        content = new String ( Files.readAllBytes( Paths.get(absolutePath) ) );
-	    } 
-	    catch (IOException e) 
-	    {
-	        e.printStackTrace();
-	    }
+           String content = "";
+	
+            		BufferedReader reader = null;
+		try
+		{
+		    reader = new BufferedReader( new FileReader( absolutePath));
+                    int data = reader.read();
+                    while (data>-1)
+                    {
+                        char c = (char) data;
+                        content+=c;
+                        data = reader.read();
+
+                    }
+                    
+		}
+		catch ( IOException e)
+		{
+		}
+		finally
+		{
+		    try
+		    {
+		        if ( reader != null)
+		        reader.close( );
+		    }
+		    catch ( IOException e)
+		    {
+		    }
+		}
+
 	    return content;
 	}
 
