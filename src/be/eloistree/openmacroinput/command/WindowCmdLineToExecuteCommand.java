@@ -1,6 +1,6 @@
 package be.eloistree.openmacroinput.command;
 
-import be.eloistree.string.StringPlus;
+import be.eloistree.openmacroinput.StringPlus;
 
 public class WindowCmdLineToExecuteCommand extends RobotCommand{
 	String [] m_commandLines;

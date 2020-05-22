@@ -70,8 +70,10 @@ public class CommandParser {
 			result.add(robotCommand.ref);
 		} else if (isItWindowCommandLineCommand(packageToProcess, result)) {
 			
+		}else if (isItKeyComboStrokeCommand(result,packageToProcess )) {
+			
 		}
-
+		
 		return result;
 	}
 
@@ -81,7 +83,7 @@ public class CommandParser {
 		if (packageToProcess.length() <= 3)
 			return false;
 		String content = packageToProcess.substring(3);
-		String[] tokens = content.split("裂");
+		String[] tokens = content.split(""+MyUnicodeChar.split);
 		if (tokens.length == 2) {
 			robotCommand.ref = new EmbraceCommand(tokens[0], tokens[1]);
 			return true;
@@ -103,7 +105,7 @@ public class CommandParser {
 		if (packageToProcess.length() <= 5)
 			return false;
 		String content = packageToProcess.substring(5);
-		String[] tokens = content.split("裂");
+		String[] tokens = content.split(""+MyUnicodeChar.split);
 		if (tokens.length == 2) {
 			robotCommand.ref = new EmbracePerLineCommand(tokens[0], tokens[1]);
 			return true;
@@ -121,7 +123,7 @@ public class CommandParser {
 
 	//NEED TO BE IMPROVE BUT I DONT MASTER ENOUGH REGEX
 	private static String regexText = "\\[\\[[^\\[\\]]+\\]\\]";
-	private static String regexCommand = "\\w+[↓↑↕]";
+	private static String regexCommand = "\\w+["+MyUnicodeChar.press+MyUnicodeChar.release+MyUnicodeChar.stroke+"]";
 
 	private boolean isItSomeShortcutCommandsV2(String packageToProcess, ArrayList<RobotCommand> result) {
 		if (!(packageToProcess.startsWith("sc:")))
@@ -129,7 +131,9 @@ public class CommandParser {
 		if (packageToProcess.length() <= 3)
 			return false;
 		String content = packageToProcess.substring(3);
-		Pattern.compile(String.format("(%s)|(%s)", regexCommand,regexText));
+		//Pattern.compile(String.format("(%s)|(%s)", regexCommand,regexText));
+		
+		content= replaceComboStrokeByKeyPressions(content);
 		
 			ArrayList<String> shortcuts = FindArrowShortcutWithText(content);
 			for (int i = 0; i < shortcuts.size(); i++) {
@@ -150,21 +154,73 @@ public class CommandParser {
 		return false;
 	}
 
+	//https://regexr.com/554uh
+	private static String comboStroke ="([A-Za-z0-9"+MyUnicodeChar.arrows()+"]+)([\\s]*\\+[\\s]*[A-Za-z0-9"+MyUnicodeChar.arrows()+"]+)+";
+	private String replaceComboStrokeByKeyPressions(String content) {
+		String textProcessed = content;
+		int indexStart =0;
+		int indexEnd =-1;
+		int antiLoop=500;
+		String found ="";
+		String replacement ="";
+		String before ="";
+		String result ="";
+		
+		while(indexStart>-1 && antiLoop>0) {
+			
+			Pattern p = Pattern.compile(comboStroke);  // insert your pattern here
+			Matcher m = p.matcher(textProcessed);
+			if (m.find()) {
+				indexStart = m.start();
+				indexEnd = m.end();
+				before = textProcessed.substring(0,indexStart);
+				found = textProcessed.substring(indexStart, indexEnd);
+				//System.out.println("Found>>"+found);
+				replacement =parseComboToShortCut(found);
+				//System.out.println("Replace by>>"+replacement);
+				  
+				textProcessed = textProcessed.substring(indexEnd+1);
+				result += before+replacement;
+				//result += " "+before+" "+replacement+" ";
+				}
+			
+			antiLoop--;
+		}
+		//System.out.println("Result>>"+result);
+		return result;
+	}
+
+	private String parseComboToShortCut(String found) {
+		String [] parts = found.split("\\+");
+		String result ="";
+		if(parts.length<=0) return found;
+		
+		for (int j = 0; j < parts.length; j++) {
+			 parts[j] = parts[j].replaceAll("[^A-Za-z0-9]","").trim();
+		}
+		
+		for (int j = 0; j < parts.length; j++) {
+			result += parts[j]+MyUnicodeChar.press+" ";
+		}
+		for (int j = parts.length-1; j >=0 ; j--) {
+			result += parts[j]+MyUnicodeChar.release+" ";
+			
+		}
+		return result;
+	}
+
 	private void ConvertTextToKeyStroke(ArrayList<RobotCommand> result, String shortcut) {
 		
 		String word = shortcut.substring(0, shortcut.length() - 1);
 		char arrow = shortcut.charAt(shortcut.length() - 1);
 		//System.out.println(">s: " + word + " " + arrow);
 		PressType press = PressType.Stroke;
-		if (arrow == '↓')
+		if (arrow == MyUnicodeChar.press)
 			press = PressType.Press;
-		else if (arrow == '↑')
+		else if (arrow == MyUnicodeChar.release)
 			press = PressType.Release;
 
-		if (IsDeveloperKeyShortcut(result, word, press));
-		else if (IsMouseShortcut(result, word, press));
-		else if (IsJavaKeyShortcut(result, word, press));
-		else if (IsUserKeyShortcut(result, word, press));
+		AddValideWord(result, word,press);
 	}
 	
 	
@@ -218,7 +274,6 @@ public class CommandParser {
 		for (KeyEventId key : m_userShortcut.getRefToKeys()) {
 
 			if (content.contentEquals(key.GetShortcutName().toLowerCase())) {
-				// System.out.print("Sh:"+key.GetShortcutName());
 				result.add(new KeyStrokeCommand(key.GetJavaName(), pressType));
 				return true;
 			}
@@ -269,12 +324,12 @@ public class CommandParser {
 			return true;
 		}
 
-		// TODO Auto-generated method stub
 		return false;
 	}
+	/*
 	private static ArrayList<String> FindArrowShortcut(String value) {
 		ArrayList<String> shortcut = new ArrayList<String>();
-		String pattern = "\\w+[↑↓↕]";
+		String pattern = "\\w+["+MyUnicodeChar.press+MyUnicodeChar.relase+MyUnicodeChar.stroke+"]";
 		Pattern r = Pattern.compile(pattern);
 		Matcher m = r.matcher(value);
 		while (m.find()) {
@@ -282,14 +337,13 @@ public class CommandParser {
 			shortcut.add(m.group(0));
 		}
 		return shortcut;
-	}
+	}//*/
 
 	private static ArrayList<String> FindArrowShortcutWithText(String value) {
 		ArrayList<String> shortcut = new ArrayList<String>();
 		Pattern r =Pattern.compile(String.format("(%s)|(%s)", regexCommand,regexText));
 		Matcher m = r.matcher(value);
 		while (m.find()) {
-			//System.out.println("Found value: " + m.group(0));
 			shortcut.add(m.group(0));
 		}
 		return shortcut;
@@ -397,6 +451,51 @@ public class CommandParser {
 		return true;
 	}
 
+	private boolean isItKeyComboStrokeCommand(ArrayList<RobotCommand> result, String packageToProcess) {
+		if (!(packageToProcess.startsWith("ksc:") ))
+			return false;
+		if (packageToProcess.length() <= 4)
+			return false;
+
+		String content = packageToProcess.substring(4).trim();
+		if(content.trim().length()<=0) 
+			return false;
+		String [] lines = content.split("["+MyUnicodeChar.split+"|>&]");
+		if(lines.length<=0) return false;
+		
+		for (int i = 0; i < lines.length; i++) {
+			String [] parts = lines[i].split("\\+");
+			if(parts.length<=0) return false; 
+			for (int j = 0; j < parts.length; j++) {
+				 parts[j] = parts[j].replaceAll("[^A-Za-z0-9]","").trim();
+			}
+			for (int j = 0; j < parts.length; j++) {
+				String part = parts[j];
+				
+
+				
+				AddValideWord(result, part, PressType.Press);
+				
+			}
+			for (int j = parts.length-1; j >=0 ; j--) {
+				String part = parts[j];
+
+				AddValideWord(result, part, PressType.Release);
+				
+			}
+		}
+		
+		
+		return true;
+	}
+
+	private void AddValideWord(ArrayList<RobotCommand> result, String alphaNumWord, PressType pressType) {
+		if (IsDeveloperKeyShortcut(result, alphaNumWord, pressType));
+		else if (IsMouseShortcut(result, alphaNumWord, pressType));
+		else if (IsJavaKeyShortcut(result, alphaNumWord, pressType));
+		else if (IsUserKeyShortcut(result, alphaNumWord, pressType));
+	}
+	
 	private boolean isItExitOrStopCommand(String packageToProcess, RobotCommandRef robotCommand) {
 		if (!(packageToProcess.startsWith("exit") || packageToProcess.startsWith("stop")))
 			return false;
@@ -490,7 +589,7 @@ public class CommandParser {
 		if (packageToProcess.length() <= 4)
 			return false;
 		String content = packageToProcess.substring(4);
-		result.add(new WindowCmdLineToExecuteCommand(content.split("è£‚")));
+		result.add(new WindowCmdLineToExecuteCommand(content.split(""+MyUnicodeChar.split)));
 
 		return true;
 	}

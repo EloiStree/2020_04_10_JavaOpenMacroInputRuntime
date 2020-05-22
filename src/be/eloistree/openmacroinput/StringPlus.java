@@ -1,4 +1,4 @@
-package be.eloistree.string;
+package be.eloistree.openmacroinput;
 
 public class StringPlus {
 

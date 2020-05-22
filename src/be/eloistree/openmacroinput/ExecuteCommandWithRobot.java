@@ -38,7 +38,6 @@ import be.eloistree.openmacroinput.command.UnicodeCommand;
 import be.eloistree.openmacroinput.command.WindowCmdLineToExecuteCommand;
 import be.eloistree.openmacroinput.enums.PressType;
 import be.eloistree.openmacroinput.window.CmdUtility;
-import be.eloistree.string.StringPlus;
 
 public class ExecuteCommandWithRobot {
 
@@ -118,7 +117,7 @@ public class ExecuteCommandWithRobot {
 			
 			robot.keyPress (GetIdFrom(cmd.m_javaKeyName));
 			try {
-				Thread.sleep(50);
+				Thread.sleep(15);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -128,7 +127,7 @@ public class ExecuteCommandWithRobot {
 			{				
 				robot.keyRelease(GetIdFrom(cmd.m_javaKeyName));
 				try {
-					Thread.sleep(50);
+					Thread.sleep(15);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

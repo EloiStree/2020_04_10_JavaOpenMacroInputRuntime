@@ -30,10 +30,11 @@ import javax.swing.JFrame;
 import javax.swing.JTextArea;
 
 import be.eloistree.openmacroinput.OsUtility.OS;
+import be.eloistree.openmacroinput.audio.PlaySoundFromUrl;
 import be.eloistree.openmacroinput.command.RobotCommand;
 import be.eloistree.openmacroinput.convertiontables.KeyEventAsString;
 import be.eloistree.openmacroinput.window.CmdUtility;
-import be.eloistree.string.StringPlus;
+
 import java.io.BufferedReader;
 import java.nio.charset.Charset;
 
@@ -50,6 +51,7 @@ public class OpenMacroInputJavaRuntime {
 	public static ExecuteCommandWithRobot executer;
 	public static void main(String[] args) throws IOException {
 
+		///PlaySoundFromUrl.PlayWav("https://www.kozco.com/tech/WAV-MP3.wav");
 		println("Open Macro Input (Java)  ");
 		setPortAndLockerFromMainArgs(args);
 		displayFrameToDebugAndCloseProcess(args);
@@ -131,7 +133,7 @@ public class OpenMacroInputJavaRuntime {
 		//jTextArea.update(jTextArea.getGraphics());
 	}
 	private static String getPatreonSupportLink() {
-		return "Hope this tool is helping you. 🤘 \n"
+		return "Hope this tool is helping you. "+MyUnicodeChar.youRock+" \n"
 	+"https://eloistree.page/donation\n";
 	}
 
@@ -155,7 +157,7 @@ public class OpenMacroInputJavaRuntime {
 			public void run() {
 				DatagramSocket server=null;
 				try {
-					System.out.println("← → ↑ ↓ ↔ ↕");
+					System.out.println(""+MyUnicodeChar.press+MyUnicodeChar.release+MyUnicodeChar.stroke+MyUnicodeChar.youRock+MyUnicodeChar.split);
 
 					server= new DatagramSocket(port);
 					while (true) {
@@ -164,9 +166,9 @@ public class OpenMacroInputJavaRuntime {
 						DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 						server.receive(packet);
 
-                                                Charset cd =Charset.forName("UTF-8");
-                                                
-						String str = new String(packet.getData(), Charset.forName("UTF-8"));
+                        Charset cd =Charset.forName("UTF-8");
+
+						String str = new String(packet.getData(), cd);
 						System.out.println("P:"+str);
 						addPackageToWait(str);
 						packet.setLength(buffer.length); 

@@ -20,9 +20,9 @@ public class KeyEventId {
 	 public String GetJavaName() {return m_nameAsString; }
 	 public String GetShortcutName() {return m_nameShortcutAsString; }
 	 public String GetShortcutNameWhen(PressType pressType) {
-		 char pType = '↕';
-		 if(pressType== pressType.Press)pType= '↓';
-		 if(pressType== pressType.Release)pType= '↑';
+		 char pType = MyUnicodeChar.stroke;
+		 if(pressType== pressType.Press)pType= MyUnicodeChar.press;
+		 if(pressType== pressType.Release)pType= MyUnicodeChar.release;
 		 return m_nameShortcutAsString+pType; 
 	 }
 	 
