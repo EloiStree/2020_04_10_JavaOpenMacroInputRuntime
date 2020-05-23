@@ -1,5 +1,7 @@
 package be.eloistree.openmacroinput.command;
 
+import from.web.code.StringUnicodeEncoderDecoder;
+
 public class UnicodeCommand extends RobotCommand{
 
 	 int m_unicodeId;
@@ -7,7 +9,9 @@ public class UnicodeCommand extends RobotCommand{
 		m_unicodeId = unicodeId;
 	}
 	public String getUnicodeAsString() {
-		return Character.toString((char)m_unicodeId);
+		
+		return StringUnicodeEncoderDecoder.decodeUnicodeSequenceToString( "\\u" + Integer.toHexString(m_unicodeId) );
+		 
 		
 	}
 	

@@ -560,13 +560,14 @@ public class CommandParser {
 		String content = packageToProcess.substring(8).toLowerCase().trim();
 		boolean parseSucceed=false;
 		int unicodeId;
-		if(content.indexOf("u+")>-1|| content.indexOf("0x")>-1)
+		if(content.toLowerCase().indexOf("u+")>-1|| content.toLowerCase().indexOf("0x")>-1)
 		{
 			try {
 			
 			String hex = content.substring(2);
 			unicodeId = Integer.parseInt(hex, 16);
 			parseSucceed=true;
+			//System.out.println("<d>"+hex+"-"+unicodeId);
 			}catch(Exception e) {System.out.println("Can't parse to unicode:"+content); return false;}
 		}
 		else {

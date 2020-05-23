@@ -311,7 +311,7 @@ public void execute(EmbraceCommand cmd) {
 		
 		}
 		Thread.sleep(20);
-		} catch (InterruptedException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
