@@ -132,8 +132,10 @@ public class CommandParser {
 			return false;
 		String content = packageToProcess.substring(3);
 		//Pattern.compile(String.format("(%s)|(%s)", regexCommand,regexText));
-		
+
+		System.out.println(">>>"+content);
 		content= replaceComboStrokeByKeyPressions(content);
+		System.out.println(">>>"+content);
 		
 			ArrayList<String> shortcuts = FindArrowShortcutWithText(content);
 			for (int i = 0; i < shortcuts.size(); i++) {
@@ -183,9 +185,12 @@ public class CommandParser {
 				result += before+replacement;
 				//result += " "+before+" "+replacement+" ";
 				}
+		
 			
 			antiLoop--;
 		}
+		if(result.length()<=0)
+			result =content;
 		//System.out.println("Result>>"+result);
 		return result;
 	}

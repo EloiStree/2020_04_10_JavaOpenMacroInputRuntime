@@ -112,25 +112,32 @@ public class ExecuteCommandWithRobot {
 		
 	}
 	
+	public long m_timeBetweenCommandInMs=0;
 	public void execute(KeyStrokeCommand cmd) {
 		if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Press ) {
 			
 			robot.keyPress (GetIdFrom(cmd.m_javaKeyName));
-			try {
-				Thread.sleep(15);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if(m_timeBetweenCommandInMs>0) {
+					
+				try {
+					Thread.sleep(m_timeBetweenCommandInMs);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 			if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Release )
 			{				
 				robot.keyRelease(GetIdFrom(cmd.m_javaKeyName));
-				try {
-					Thread.sleep(15);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if(m_timeBetweenCommandInMs>0) {
+					
+					try {
+						Thread.sleep(m_timeBetweenCommandInMs);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}		
 	}
