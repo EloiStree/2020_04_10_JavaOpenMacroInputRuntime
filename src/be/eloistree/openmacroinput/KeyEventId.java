@@ -2,6 +2,7 @@ package be.eloistree.openmacroinput;
 
 import java.util.ArrayList;
 
+import be.eloistree.debug.CDebug;
 import be.eloistree.openmacroinput.convertiontables.KeyEventAsString;
 import be.eloistree.openmacroinput.enums.PressType;
 

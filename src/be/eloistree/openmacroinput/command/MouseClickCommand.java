@@ -21,11 +21,11 @@ public class MouseClickCommand extends RobotCommand {
 			default: return 0;
 		}
 		
-	}public int getButtonJavaId() {
+	}public int getButtonJavaId() {	
 		switch(m_buttonType) {
-		case Middle: return InputEvent.BUTTON2_DOWN_MASK;
-		case Right: return  InputEvent.BUTTON3_DOWN_MASK;
-		default: return  InputEvent.BUTTON1_DOWN_MASK;
+		case Middle: return InputEvent.BUTTON2_MASK;
+		case Right: return  InputEvent.BUTTON3_MASK;
+		default: return  InputEvent.BUTTON1_MASK;
 	}
 	
 }

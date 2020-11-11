@@ -4,10 +4,10 @@ import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.InputEvent;
+import java.awt.event.InputEvent;	
 import java.awt.event.KeyEvent;
 import java.awt.AWTException;
-import java.awt.Color;
+import java.awt.Color;		
 import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -23,17 +23,20 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Queue;
 
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 
+import be.eloistree.debug.CDebug;
 import be.eloistree.openmacroinput.OsUtility.OS;
 import be.eloistree.openmacroinput.audio.PlaySoundFromUrl;
 import be.eloistree.openmacroinput.command.RobotCommand;
 import be.eloistree.openmacroinput.convertiontables.KeyEventAsString;
 import be.eloistree.openmacroinput.window.CmdUtility;
+import be.eloistree.time.ExecuteTime;
 
 import java.io.BufferedReader;
 import java.nio.charset.Charset;
@@ -54,6 +57,8 @@ public class OpenMacroInputJavaRuntime {
 	public static String validateHistory="";
 	public static String numberInTheQueue="";
 	public static boolean recievedPackaged=false;
+	public static ArrayList<RobotCommand> executeLaterStack = new ArrayList<RobotCommand>();
+	
 	public static void main(String[] args) throws IOException {
 
 		///PlaySoundFromUrl.PlayWav("https://www.kozco.com/tech/WAV-MP3.wav");
@@ -68,12 +73,11 @@ public class OpenMacroInputJavaRuntime {
 		executer = new ExecuteCommandWithRobot();
 		
 		
-
+		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 		
 		
 		
 		CommandParser parser= new CommandParser(keysUserShortcut);
-		System.out.println("Hey :");
 		int packageCount =0;
 		while(true) {
 			packageCount =getPackageWaitingCount();
@@ -82,49 +86,83 @@ public class OpenMacroInputJavaRuntime {
 				if(recievedPackaged==false)
 				recievedPackaged=true;
 				String packageToProcess =dequeueNextPackage();
-				System.out.println("Deqeue:"+packageToProcess.trim());
 				
+				//if(CDebug.use)
+				System.out.println("Deqeue:"+packageToProcess.trim());
+				System.out.println("InWaiting:"+executeLaterStack.size());
 				if(locker.length()>0 && !packageToProcess.startsWith(locker) ) {
-					System.out.println(String.format("Deny (%s,%s):%s",locker, ""+lockDenyCount, packageToProcess));
+					if(CDebug.use)
+						System.out.println(String.format("Deny (%s,%s):%s",locker, ""+lockDenyCount, packageToProcess));
 					lockDenyCount++;
 					packageToProcess="";
 				}
 				else {
-                                    
+
                                     
 					if(locker.length()>0) {
 					
 						packageToProcess=packageToProcess.substring(locker.length());	
-						System.out.println("After Locker:"+packageToProcess.trim());
+
+						if(CDebug.use)System.out.println("After Locker:"+packageToProcess.trim());
 					}
 				} 				
+				//long a = ZonedDateTime.now().toInstant().toEpochMilli();
 				lastPackage=packageToProcess;
+				
+				
+				
 				if(packageToProcess.length()>0) {
-					
-					ArrayList<RobotCommand> cmds = parser.getCommandsFrom(packageToProcess);
-					System.out.println("Command found:"+cmds.size());
-					for (int i = 0; i < cmds.size(); i++) {
-						
-						try {
-							
-						executer.execute(cmds.get(i));
-						}catch(Exception e) {
-							System.out.print("Fail to execute:"+cmds.get(i).toString()+"\n"+e.getStackTrace());
 
-							OpenMacroInputJavaRuntime. DisplayException(e);
+					ArrayList<RobotCommand> cmds = parser.getCommandsFrom(packageToProcess);
+					//System.out.println("Command found:"+cmds.size());
+					for (int i = 0; i < cmds.size(); i++) {
+
+						if(cmds.get(i).hasExecuteTime()) {
+							executeLaterStack.add(cmds.get(i));
+						}
+						else {
+							ExecuteCommand(cmds.get(i));
 						}
 						
 						lastValidate= cmds.get(i).toString();
-						validateHistory= lastValidate+"\n\r"+validateHistory;
-						if(validateHistory.length()>2000)
-							validateHistory= validateHistory.substring(0,2000);
-						//if(cmds!=null)
-							//cmds.get(i).execute();
+						//validateHistory= lastValidate+"\n\r"+validateHistory;
+						//if(validateHistory.length()>2000)
+						//validateHistory= validateHistory.substring(0,2000);
+						
+						   
 					}
+					//long b = ZonedDateTime.now().toInstant().toEpochMilli();
+				     // System.out.println("M: " + (b-a));
 				}
 			
 				//setTextDisplayed(String.format("Package:\t%s\nValide:\t%s\n\nHistory:\n%s\n",lastValidate, lastValidate, validateHistory),true);
+				
 			}
+
+			for (int i = 0; i < executeLaterStack.size(); i++) {
+				if(executeLaterStack.get(i).isCommandReadyToBeExecuted()) {
+					ExecuteCommand(executeLaterStack.get(i));
+					hasBeenExecuted.add(executeLaterStack.get(i));
+				}
+			}
+			for (int i = 0; i <hasBeenExecuted.size(); i++) {
+				executeLaterStack.remove(hasBeenExecuted.get(i));
+			}
+			hasBeenExecuted.clear();
+		}
+	}
+	public static LinkedList<RobotCommand> hasBeenExecuted= new LinkedList<RobotCommand>();
+	
+	private static void ExecuteCommand(RobotCommand cmd) {
+		try {
+
+			executer.execute(cmd);
+			//System.out.print("Executed:"+cmd.toString());
+		}catch(Exception e) {
+			if(CDebug.use)
+					System.out.print("Fail to execute:"+cmd.toString()+"\n"+e.getStackTrace());
+
+			//OpenMacroInputJavaRuntime. DisplayException(e);
 		}
 	}
 	public static void DisplayException(Exception stack ) {
@@ -139,12 +177,12 @@ public class OpenMacroInputJavaRuntime {
 	public static String exceptionHappened="";
 	public static void DisplayException(String stack, long sleepTime ) {
 		exceptionHappened= "EXCEPTION:+\\n\"+ stack";
-		try {
-			Thread.sleep(sleepTime);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			OpenMacroInputJavaRuntime. DisplayException(e);
-		}
+		//try {
+			//Thread.sleep(sleepTime);
+		//} catch (InterruptedException e) {
+		//		e.printStackTrace();
+		//	OpenMacroInputJavaRuntime. DisplayException(e);
+		//	}
 		exceptionHappened="";
 		
 		
@@ -162,7 +200,7 @@ public class OpenMacroInputJavaRuntime {
 			jTextArea.setText(getTextIpPortDescription()+getPatreonSupportLink()+"\n"+text.trim());
 		else 
 			jTextArea.setText(text.trim());
-		frame.update(frame.getGraphics());
+		//frame.update(frame.getGraphics());
 		//jTextArea.update(jTextArea.getGraphics());
 	}
 	private static String getPatreonSupportLink() {
@@ -189,8 +227,7 @@ public class OpenMacroInputJavaRuntime {
 	private static void StartRefreshUIThread() {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
-
-				try {
+				//try {
 				while (true) {
 					if(recievedPackaged) {
 						
@@ -201,22 +238,25 @@ public class OpenMacroInputJavaRuntime {
 							setTextDisplayed(String.format("Package (%s):\t%s\nValide:\t%s\n\nHistory:\n%s\n",
 									OpenMacroInputJavaRuntime. numberInTheQueue,
 									OpenMacroInputJavaRuntime. lastValidate,
-									OpenMacroInputJavaRuntime. lastValidate, 
-									OpenMacroInputJavaRuntime. validateHistory),true);
+									OpenMacroInputJavaRuntime. lastValidate,
+									OpenMacroInputJavaRuntime. validateHistory
+									),true);
 							
 						}
+					} 
+					//Thread.currentThread().sleep(10);
 					}
-					Thread.sleep(500);}
 					
-				}
-				catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				//}
+				//catch (InterruptedException e) {
+				//	// TODO Auto-generated catch block
+				//	e.printStackTrace();
+				//}
 				
 			}
 
 		});
+		t.setPriority(Thread .MIN_PRIORITY);
 		t.start();
 		
 	}
@@ -226,7 +266,8 @@ public class OpenMacroInputJavaRuntime {
 			public void run() {
 				DatagramSocket server=null;
 				try {
-					System.out.println(""+MyUnicodeChar.press+MyUnicodeChar.release+MyUnicodeChar.stroke+MyUnicodeChar.youRock+MyUnicodeChar.split);
+
+					if(CDebug.use)System.out.println(""+MyUnicodeChar.press+MyUnicodeChar.release+MyUnicodeChar.stroke+MyUnicodeChar.youRock+MyUnicodeChar.split);
 
 					server= new DatagramSocket(port);
 					while (true) {
@@ -238,6 +279,8 @@ public class OpenMacroInputJavaRuntime {
                         Charset cd =Charset.forName("UTF-8");
 
 						String str = new String(packet.getData(), cd);
+
+						if(CDebug.use)
 						System.out.println("P("+m_receivedPackage.size()+"):"+str );
 						addPackageToWait(str);
 						packet.setLength(buffer.length); 
@@ -259,6 +302,7 @@ public class OpenMacroInputJavaRuntime {
 
 		});
 
+		t.setPriority(Thread .MIN_PRIORITY);
 		t.start();
 	}
 
@@ -388,11 +432,13 @@ public class OpenMacroInputJavaRuntime {
 	}
 
 	public static synchronized void print(String str) {
-		System.out.print(str);
+
+		if(CDebug.use)System.out.print(str);
 	}
 
 	public static synchronized void println(String str) {
-		System.err.println(str);
+
+		if(CDebug.use)System.err.println(str);
 	}
 
 }

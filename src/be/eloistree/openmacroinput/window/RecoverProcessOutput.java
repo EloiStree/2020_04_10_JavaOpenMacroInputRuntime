@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import be.eloistree.debug.CDebug;
+
 /**
 Source: https://codes-sources.commentcamarche.net/faq/10905-lancement-d-un-commande-avec-runtime-exec
 */
@@ -23,7 +25,7 @@ public class RecoverProcessOutput extends Thread {
 			BufferedReader br = new BufferedReader(reader);
 			String ligne=null;
 			while ( (ligne = br.readLine()) != null){
-				System.out.println(ligne);
+				if(CDebug.use)System.out.println(ligne);
 			}
 		}
 		catch (IOException ioe){

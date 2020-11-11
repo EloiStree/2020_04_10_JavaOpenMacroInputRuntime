@@ -15,8 +15,10 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Calendar;
 
 import be.eloistree.copyfromweb.ImageToClipboard;
+import be.eloistree.debug.CDebug;
 import be.eloistree.openmacroinput.OsUtility.OS;
 import be.eloistree.openmacroinput.command.CopyPastCommand;
 import be.eloistree.openmacroinput.command.CopyPastCommand.Type;
@@ -50,6 +52,8 @@ public class ExecuteCommandWithRobot {
 		
 		try {
 			robot = new Robot();
+			robot.setAutoDelay(2);
+			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 			cmdUtility= new  CmdUtility(false, false);
 			clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 			toolkit = Toolkit.getDefaultToolkit();
@@ -73,7 +77,7 @@ public class ExecuteCommandWithRobot {
 		else if( cmd instanceof  WindowCmdLineToExecuteCommand ) execute((WindowCmdLineToExecuteCommand)cmd);
 		else if( cmd instanceof  ImageURLToClipboardCommand ) execute((ImageURLToClipboardCommand)cmd);
 		else {
-			System.out.println("Command not take in charge: "+cmd);
+			if(CDebug.use)System.out.println("Command not take in charge: "+cmd);
 		}
 		
 	}
@@ -116,29 +120,30 @@ public class ExecuteCommandWithRobot {
 	public void execute(KeyStrokeCommand cmd) {
 		if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Press ) {
 			
+
 			robot.keyPress (GetIdFrom(cmd.m_javaKeyName));
-			if(m_timeBetweenCommandInMs>0) {
+			/*if(m_timeBetweenCommandInMs>0) {
 					
 				try {
-					Thread.sleep(m_timeBetweenCommandInMs);
+					Thread.currentThread().sleep(m_timeBetweenCommandInMs);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			}
-		}
+			}*/
+		} 
 			if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Release )
 			{				
 				robot.keyRelease(GetIdFrom(cmd.m_javaKeyName));
-				if(m_timeBetweenCommandInMs>0) {
-					
+				/*if(m_timeBetweenCommandInMs>0) {
+					 
 					try {
-						Thread.sleep(m_timeBetweenCommandInMs);
+						//Thread.currentThread().sleep(m_timeBetweenCommandInMs);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				}
+				}*/
 			}		
 	}
 	
@@ -150,6 +155,7 @@ public class ExecuteCommandWithRobot {
 	}
 	
 	public void execute(MouseClickCommand cmd) {
+		System	.out.print("ddd "+cmd.toString());
 		if(cmd.getPressType()==PressType.Stroke || cmd.getPressType()==PressType.Press )
 		robot.mousePress((cmd.getButtonJavaId()));
 		if(cmd.getPressType()==PressType.Stroke || cmd.getPressType()==PressType.Release )
@@ -165,7 +171,7 @@ public class ExecuteCommandWithRobot {
 		return 0;
 	}
 	public void execute(MouseMoveCommand cmd) {
-
+		
 		 float x_L2R=cmd.m_leftToRight; 
 		 float y_B2T=cmd.m_botToTop;
 		 Dimension screenSize =toolkit.getScreenSize();
@@ -210,7 +216,7 @@ public void execute(PastCommand cmd) {
 
 				messageWrite = true;
 			} catch (IllegalStateException e) {
-				System.out.println("Did not send message... Retry");
+				if(CDebug.use)System.out.println("Did not send message... Retry");
 
 			
 				messageWrite = false;
@@ -253,7 +259,7 @@ public void execute(CopyPastCommand cmd) {
 				PastText(null);
 
 		} catch (IllegalStateException e) {
-			System.out.println("Did not send message... Retry");
+			if(CDebug.use)System.out.println("Did not send message... Retry");
 
 		
 		}
@@ -278,7 +284,7 @@ public void execute(EmbraceCommand cmd) {
 
 			messageWrite = true;
 		} catch (IllegalStateException e) {
-			System.out.println("Did not send message... Retry");
+			if(CDebug.use)System.out.println("Did not send message... Retry");
 
 		
 			messageWrite = false;

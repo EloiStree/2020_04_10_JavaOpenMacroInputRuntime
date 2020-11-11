@@ -11,6 +11,8 @@ import java.net.URL;
 
 import javax.imageio.ImageIO;
 
+import be.eloistree.debug.CDebug;
+
 //Source: https://stackoverflow.com/questions/4552045/copy-bufferedimage-to-clipboard
 public class ImageToClipboard implements ClipboardOwner {
     public ImageToClipboard(String wantedUrlImage) {
@@ -44,7 +46,7 @@ public class ImageToClipboard implements ClipboardOwner {
     }
 
     public void lostOwnership( Clipboard clip, Transferable trans ) {
-        System.out.println( "Lost Clipboard Ownership" );
+    	if(CDebug.use) System.out.println( "Lost Clipboard Ownership" );
     }
 
     private class TransferableImage implements Transferable {

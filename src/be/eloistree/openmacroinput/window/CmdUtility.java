@@ -1,5 +1,7 @@
 package be.eloistree.openmacroinput.window;
-import java.io.IOException; 
+import java.io.IOException;
+
+import be.eloistree.debug.CDebug; 
 
 /**
  Source: https://codes-sources.commentcamarche.net/faq/10905-lancement-d-un-commande-avec-runtime-exec
@@ -61,9 +63,9 @@ public class CmdUtility {
 		CmdUtility exemple = new CmdUtility(false,false);
 		exemple.openApplication("obs32.exe");
 		boolean result=exemple.beep();
-		System.out.println(result);
+		if(CDebug.use)System.out.println(result);
 		result=exemple.ping("localhost");
-		System.out.println(result);
+		if(CDebug.use)System.out.println(result);
 		exemple.openUrl("https://stackoverflow.com/questions/44513063/how-to-open-a-url-with-cmd");
 		exemple.killApplication("obs32.exe");
 	}
