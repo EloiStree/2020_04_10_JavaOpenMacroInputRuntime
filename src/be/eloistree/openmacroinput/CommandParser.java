@@ -42,8 +42,21 @@ public class CommandParser {
 		m_userShortcut = keysUserShortcut;
 	}
 
+
+	//TO CODE WHEN TIME
+	//Backspace↓200  =  Backspace↓ ⌛600 Backspace↑
+	String regexLastTime= "\\w["+getTimeAffectedUnicode()+"]\\d";
+	//Backspace↓200  =  Backspace↓↑
+	String doubleArrow = "\\w["+MyUnicodeChar.press+MyUnicodeChar.release+"]\\d"; 
+	//🖱move:lrdt:0.5:0.7 = move mouse at 50% of left to right and 70% of down to top of the screen.
+	//🖱left:lrdt:50:60 = left click at 50pixel from left to right and 60 from bot to top
+	String regexMouse= MyUnicodeChar.mouse+"\\w:\\w:\\w:\\w";
+	//TO CODE WHEN TIME
+	
 	public ArrayList<RobotCommand> getCommandsFrom(String packageToProcess) {
 
+		
+		
 		ExecuteTime whenToDo = null;
 		if(packageToProcess.indexOf("t:")==0) {
 			packageToProcess= packageToProcess.substring(2);
@@ -141,6 +154,15 @@ public class CommandParser {
 		return result;
 	}
 
+	private String getTimeAffectedUnicode() {
+		
+		return ""+MyUnicodeChar.press+
+				MyUnicodeChar.release+
+				MyUnicodeChar.stroke+
+				MyUnicodeChar.pressThenRelease+
+				MyUnicodeChar.releaseThenPress;
+	}
+
 	private boolean isItEmbraceCommand(String packageToProcess, RobotCommandRef robotCommand) {
 		if (!(packageToProcess.startsWith("em:")))
 			return false;
@@ -187,8 +209,9 @@ public class CommandParser {
 
 	//NEED TO BE IMPROVE BUT I DONT MASTER ENOUGH REGEX
 	private static String regexText = "\\[\\[[^\\[\\]]+\\]\\]";
-	private static String regexCommand = "\\w+["+MyUnicodeChar.press+MyUnicodeChar.release+MyUnicodeChar.stroke+"]";
-	private static String regexTime = MyUnicodeChar.time+"[0-9]+";
+	private static String regexCommand = "\\w+["+MyUnicodeChar.press+MyUnicodeChar.release+MyUnicodeChar.stroke+MyUnicodeChar.releaseThenPress+MyUnicodeChar.pressThenRelease+"]";
+	private static String regexTime =MyUnicodeChar.sandTime+"[0-9]+";
+	private static String regexTimeWatch =MyUnicodeChar.watchTime+"[0-9h:s]+";
 	
 
 	private boolean isItSomeShortcutCommandsV2(String packageToProcess, ArrayList<RobotCommand> result, ExecuteTime startPoint) {
@@ -223,18 +246,23 @@ public class CommandParser {
 					created.setTimeToExecute( new ExecuteTime(whenToExecute));
 					result.add(created);
 					
-				}else if(shortcut.matches(regexCommand)) {
+				}
+				
+				else if(shortcut.matches(regexCommand)) {
 					
 					
 					ConvertTextToKeyStroke(result, shortcut, whenToExecute);
 					
-				}else if(shortcut.indexOf(""+MyUnicodeChar.time)>-1) {
+				}else if(shortcut.indexOf(""+MyUnicodeChar.sandTime)>-1) {
 
 					int millisecondExtracted= extractTimeInMS(shortcut);
-					Calendar newTime=Calendar.getInstance();
-					newTime.setTimeInMillis(whenToExecute.getTimeInMillis()+millisecondExtracted);
-					whenToExecute =newTime;
+					whenToExecute = AddMillisecondsToTime(whenToExecute, millisecondExtracted);
 					//System.out.println("YYYY "+whenToExecute.getTimeInMillis());
+					
+				}else if(shortcut.indexOf(""+MyUnicodeChar.watchTime)>-1) {
+
+					int millisecondExtracted= extractTimeInMSFromWatch(shortcut,whenToExecute );
+					whenToExecute = AddMillisecondsToTime(whenToExecute, millisecondExtracted);
 					
 				}
 				
@@ -247,11 +275,65 @@ public class CommandParser {
 		return result.size()>0;
 	}
 
+	private Calendar AddMillisecondsToTime(Calendar whenToExecute, int millisecondExtracted) {
+		Calendar newTime=Calendar.getInstance();
+		newTime.setTimeInMillis(whenToExecute.getTimeInMillis()+millisecondExtracted);
+		whenToExecute =newTime;
+		return whenToExecute;
+	}
+
 	
+	private int extractTimeInMSFromWatch(String text, Calendar whenToExecute) {
+		System.out.println(">>Watch humm>");
+		text= text.trim();
+		int i = text.indexOf(MyUnicodeChar.watchTime);
+		if(i<0)return 0;
+		text = text.substring(i+1).trim();
+		
+		try {
+			int hour=0;
+			int minute=0;
+			int second=0;
+			int millisecond=0;
+			String [] tokens = text.split("[h:s]");
+			if(tokens.length>=1)
+				hour =Integer.parseInt(tokens[0]);
+			if(tokens.length>=2)
+				minute =Integer.parseInt(tokens[1]);
+			if(tokens.length>=3)
+				second =Integer.parseInt(tokens[2]);
+			if(tokens.length>=4)
+				millisecond =Integer.parseInt(tokens[3]);
+			
+			
+
+			
+			Calendar d =  Calendar.getInstance();
+			d.set(d.get(Calendar.YEAR) ,d.get(Calendar.MONTH), d.get(Calendar.DAY_OF_MONTH),  hour, minute, second);
+			d.add(Calendar.MILLISECOND, millisecond);
+			
+			long ms = daysBetween(whenToExecute, d);
+			if(ms<0)
+				ms=0;	
+			
+				System.out.println(">>Watcj Time>"+text+">"+ ms);
+		return (int) ms;
+		
+		
+		}catch(NumberFormatException e) {
+
+			return 0;
+		}
+	}public long daysBetween(Calendar startDate, Calendar endDate) {
+	    long end = endDate.getTimeInMillis();
+	    long start = startDate.getTimeInMillis();
+	    return end-start;
+	}
+
 	public int extractTimeInMS(String text) {
 		
 		text= text.trim();
-		int i = text.indexOf(MyUnicodeChar.time);
+		int i = text.indexOf(MyUnicodeChar.sandTime);
 		if(i<0)return 0;
 		text = text.substring(i+1).trim();
 		
@@ -338,26 +420,46 @@ public class CommandParser {
 		String word = shortcut.substring(0, shortcut.length() - 1);
 		char arrow = shortcut.charAt(shortcut.length() - 1);
 		//System.out.println(">s: " + word + " " + arrow);
+		
+		
+		
 		PressType press = PressType.Stroke;
+		
 		if (arrow == MyUnicodeChar.press)
-			press = PressType.Press;
+			addValideWord(result, whenToExecute, word, PressType.Press);
 		else if (arrow == MyUnicodeChar.release)
-			press = PressType.Release;
+			addValideWord(result, whenToExecute, word, PressType.Release);
+		else if (arrow == MyUnicodeChar.stroke) {
+
+			addValideWord(result, whenToExecute, word, PressType.Press);
+			whenToExecute=AddMillisecondsToTime(whenToExecute, 1);
+			addValideWord(result, whenToExecute, word, PressType.Release);
+		}else if (arrow == MyUnicodeChar.releaseThenPress) {
+
+			addValideWord(result, whenToExecute, word, PressType.Release);
+			whenToExecute=AddMillisecondsToTime(whenToExecute, 1);
+			addValideWord(result, whenToExecute, word, PressType.Press);
+			
+		}else if (arrow == MyUnicodeChar.pressThenRelease) {
+			addValideWord(result, whenToExecute, word, PressType.Press);
+			whenToExecute=AddMillisecondsToTime(whenToExecute, 1);
+			addValideWord(result, whenToExecute, word, PressType.Release);
+		}
+
 
 		//System.out.println("AAAA "+whenToExecute.getTimeInMillis());
+	
+	}
+
+	private void addValideWord(ArrayList<RobotCommand> result, Calendar whenToExecute, String word, PressType press) {
 		RobotCommandRef found = new RobotCommandRef();
 		AddValideWord(result, word,press, found);
 		if(found.ref!=null && whenToExecute!=null) {
-
-			
 			found.ref.setTimeToExecute(new ExecuteTime( whenToExecute));
-		//	if(found.ref.getAsCalendarCopy()!=null)
-			//		System.out.println("DDDD "+found.ref.getAsCalendarCopy().getTimeInMillis());
-			//	else
-			//	System.out.println("DDNullDD ");
-			
 		}
 	}
+	
+	
 	
 
 	private boolean IsDeveloperKeyShortcut(ArrayList<RobotCommand> result, String content, PressType pressType, RobotCommandRef found) {
@@ -475,7 +577,7 @@ public class CommandParser {
 		return shortcut;
 	}//*/
 
-	private static Pattern r =Pattern.compile(String.format("(%s)|(%s)|(%s)", regexCommand,regexText,regexTime));
+	private static Pattern r =Pattern.compile(String.format("(%s)|(%s)|(%s)|(%s)", regexCommand,regexText,regexTime, regexTimeWatch));
 	private static ArrayList<String> FindArrowShortcutWithText(String value) {
 		//System.out.println("Hello");
 		//System.out.println("Bye");
