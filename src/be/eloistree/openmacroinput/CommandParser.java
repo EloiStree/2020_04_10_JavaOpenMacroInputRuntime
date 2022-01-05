@@ -20,6 +20,8 @@ import be.eloistree.openmacroinput.command.OpenURLCommand;
 import be.eloistree.openmacroinput.command.MouseClickCommand.MouseButton;
 import be.eloistree.openmacroinput.command.MouseMoveCommand.MoveType;
 import be.eloistree.openmacroinput.command.MouseMoveCommand.MoveTypeValue;
+import be.eloistree.openmacroinput.command.MouseMoveOneAxisCommand;
+import be.eloistree.openmacroinput.command.MouseMoveOneAxisCommand.MoveAxisType;
 import be.eloistree.openmacroinput.command.MouseMoveCommand;
 import be.eloistree.openmacroinput.command.RobotCommand;
 import be.eloistree.openmacroinput.command.UnicodeCommand;
@@ -44,10 +46,7 @@ public class CommandParser {
 
 
 	//TO CODE WHEN TIME
-	//Backspace↓200  =  Backspace↓ ⌛600 Backspace↑
-	String regexLastTime= "\\w["+getTimeAffectedUnicode()+"]\\d";
-	//Backspace↓200  =  Backspace↓↑
-	String doubleArrow = "\\w["+MyUnicodeChar.press+MyUnicodeChar.release+"]\\d"; 
+	
 	//🖱move:lrdt:0.5:0.7 = move mouse at 50% of left to right and 70% of down to top of the screen.
 	//🖱left:lrdt:50:60 = left click at 50pixel from left to right and 60 from bot to top
 	String regexMouse= MyUnicodeChar.mouse+"\\w:\\w:\\w:\\w";
@@ -212,6 +211,7 @@ public class CommandParser {
 	private static String regexCommand = "\\w+["+MyUnicodeChar.press+MyUnicodeChar.release+MyUnicodeChar.stroke+MyUnicodeChar.releaseThenPress+MyUnicodeChar.pressThenRelease+"]";
 	private static String regexTime =MyUnicodeChar.sandTime+"[0-9]+";
 	private static String regexTimeWatch =MyUnicodeChar.watchTime+"[0-9h:s]+";
+	private static String regexMouseAction = MyUnicodeChar.mouse+"[a-zA-Z0-9."+MyUnicodeChar.arrowslrtd()+"]+";
 	
 
 	private boolean isItSomeShortcutCommandsV2(String packageToProcess, ArrayList<RobotCommand> result, ExecuteTime startPoint) {
@@ -221,6 +221,7 @@ public class CommandParser {
 		if (packageToProcess.length() <= 3)
 			return false;
 		String content = packageToProcess.substring(3);
+		content  = ShortCutTransformer.ParseComplexeShortcutToBasicShortCut(content);
 		//Pattern.compile(String.format("(%s)|(%s)", regexCommand,regexText));
 
 		if(CDebug.use)
@@ -239,7 +240,7 @@ public class CommandParser {
 			for (int i = 0; i < shortcuts.size(); i++) {
 				String shortcut = shortcuts.get(i);
 				
-			
+
 				if(shortcut.matches(regexText))
 				{
 					PastCommand created = new PastCommand(shortcut.substring(2,shortcut.length()-2));
@@ -265,6 +266,14 @@ public class CommandParser {
 					whenToExecute = AddMillisecondsToTime(whenToExecute, millisecondExtracted);
 					
 				}
+				else if(shortcut.indexOf(""+MyUnicodeChar.mouse)>-1) {
+
+
+					//System.out.println(">sm>"+shortcut);
+					ConvertTextToActions(result, shortcut, whenToExecute);
+					
+					
+				}
 				
 				//System.out.println(">>TEST G>"+shortcut);
 				
@@ -273,6 +282,119 @@ public class CommandParser {
 			//System.out.println(">>TEST GE>"+whenToExecute.getTimeInMillis());
 	
 		return result.size()>0;
+	}
+
+	public enum ArrowDirectionType{Left,Right, Up, Down}
+	public enum ValuePxOrPourcentType{Px, Pourcent}
+	public String mouseMoveRegex ="["+MyUnicodeChar.arrowslrtd()+"][\\d\\.]+";
+	private void ConvertTextToActions(ArrayList<RobotCommand> result, String shortcut, Calendar whenToExecute) {
+		
+		boolean isRelative=true;
+
+		System.out.println("--------------#start#----------------------");
+		System.out.println("------------------------------------");
+		System.out.println(">0>"+shortcut);
+		String txt= shortcut.trim();
+		char [] ar =txt.toCharArray();
+		if(txt.charAt(0)+""==MyUnicodeChar.mouse)
+			return;
+		
+		
+		if(txt.charAt(2)=='A' || txt.charAt(2)=='a' ) {
+			isRelative=false;
+		}
+		
+		
+		//System.out.println(">11>"+txt+" isrel:"+isRelative+" c:"+ar[0]+" "+ar[2]);
+		
+		//////////////
+		Matcher matcher = Pattern.compile(mouseMoveRegex).matcher(txt);
+		int i = 0;
+		while (matcher.find()) {
+			for (int j = 0; j <= matcher.groupCount(); j++) {
+				String gtext = matcher.group(j).trim();
+				if (gtext.length() > 1) {
+						System.out.println("------------------------------------");
+						System.out.println("Group c " + i + ": " + gtext);
+
+					ArrowDirectionType dir = ArrowDirectionType.Left;
+					boolean found=false;
+					char c =gtext.charAt(0);
+					if(c==MyUnicodeChar.arrowLeft) {
+						dir=  ArrowDirectionType.Left;	found=true;
+					}
+					if(c==MyUnicodeChar.arrowRight) {
+						dir=  ArrowDirectionType.Right;	found=true;
+					}
+					if(c==MyUnicodeChar.arrowDown) {
+						dir=  ArrowDirectionType.Down;	found=true;
+					}
+					if(c==MyUnicodeChar.arrowUp) {
+						dir=  ArrowDirectionType.Up;	found=true;
+					}
+					gtext=gtext.substring(1);
+
+					System.out.println(">3>"+found+":"+dir);
+					if(found ) {
+						
+						String valueAsString= gtext;
+						MoveTypeValue  valueType = valueAsString.indexOf(".")>-1? MoveTypeValue.InPourcent: MoveTypeValue.InPixel;					
+						MouseMoveCommand.MoveType moveTypeValue = isRelative?MoveType.Add:MoveType.Set;
+						
+						if(valueAsString.toLowerCase().indexOf("px")>-1)
+							valueType = MoveTypeValue.InPixel;
+						
+						float value =0;
+						//try {
+							valueAsString = valueAsString.replace("[^0-9\\.,]" ,"");
+							System.out.println(">4>"+moveTypeValue+":"+valueType+":"+valueAsString);
+							
+							value =Float.parseFloat(valueAsString);
+						
+						//} catch (Exception e) {
+						//	return;
+							//}
+
+							RobotCommand cmd=null;
+						System.out.println(">5>"+moveTypeValue+":"+valueType+":"+valueAsString+":"+value+":"+dir);
+						if(isRelative) {
+							
+							if(dir==CommandParser.ArrowDirectionType.Left)
+							cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Left2Right, value));
+							if(dir==CommandParser.ArrowDirectionType.Right)
+								cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Right2Left, value));
+							if(dir==CommandParser.ArrowDirectionType.Up)
+								cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Bot2Top, value));
+							if(dir==CommandParser.ArrowDirectionType.Down)
+								cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Top2Bot, value));
+							}
+						else
+						{
+							
+							if(dir==CommandParser.ArrowDirectionType.Left)
+								cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Right2Left, value));
+							if(dir==CommandParser.ArrowDirectionType.Right)
+								cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Left2Right, value));
+							if(dir==CommandParser.ArrowDirectionType.Up)
+								cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Bot2Top, value));
+							if(dir==CommandParser.ArrowDirectionType.Down)
+								cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Top2Bot, value));
+							}
+						
+						if(cmd!=null &&  whenToExecute!=null) {
+							cmd.setTimeToExecute(new ExecuteTime( whenToExecute));
+							result.add(cmd);
+						}
+						
+					}
+					i++;
+				}
+			}
+		}
+		/////////
+		System.out.println("--------------#end#----------------------");
+
+		
 	}
 
 	private Calendar AddMillisecondsToTime(Calendar whenToExecute, int millisecondExtracted) {
@@ -577,7 +699,7 @@ public class CommandParser {
 		return shortcut;
 	}//*/
 
-	private static Pattern r =Pattern.compile(String.format("(%s)|(%s)|(%s)|(%s)", regexCommand,regexText,regexTime, regexTimeWatch));
+	private static Pattern r =Pattern.compile(String.format("(%s)|(%s)|(%s)|(%s)|(%s)", regexCommand,regexText,regexTime, regexTimeWatch,regexMouseAction));
 	private static ArrayList<String> FindArrowShortcutWithText(String value) {
 		//System.out.println("Hello");
 		//System.out.println("Bye");

@@ -1,19 +1,11 @@
 package be.eloistree.openmacroinput;
 
-import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.AWTException;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.MouseInfo;
-import java.awt.Point;
+import java.awt.Desktop;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,32 +13,26 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.LinkedList;
-import java.util.Queue;
-
-import javax.swing.JFrame;
-import javax.swing.JTextArea;
-
 import be.eloistree.debug.CDebug;
-import be.eloistree.openmacroinput.OsUtility.OS;
-import be.eloistree.openmacroinput.audio.PlaySoundFromUrl;
 import be.eloistree.openmacroinput.command.RobotCommand;
-import be.eloistree.openmacroinput.convertiontables.KeyEventAsString;
-import be.eloistree.openmacroinput.window.CmdUtility;
-import be.eloistree.time.ExecuteTime;
 
 import java.io.BufferedReader;
 import java.nio.charset.Charset;
-
 //java -jar C:\..\JarFileName.jar
 public class OpenMacroInputJavaRuntime {
-
+	
+	//public static int threadMainPriority= Thread.NORM_PRIORITY;
+		//public static int threadUDPPriority= Thread.NORM_PRIORITY;
+		public static int threadMainPriority= Thread.MIN_PRIORITY;
+		public static int threadUDPPriority= Thread.MIN_PRIORITY;
 	public static int port = 2501;
 	public static ArrayList<String> history = new ArrayList<String>();
-	public static JTextArea jTextArea = null;
+	//public static JTextArea jTextArea = null;
 	public static Clipboard clipboard;
 	public static KeyEventIdPool keysUserShortcut;
 	public static String locker = "";
@@ -61,8 +47,9 @@ public class OpenMacroInputJavaRuntime {
 
 	public static boolean useConsole = true;
 	public static boolean useRefreshConsoleState = false;
+	public static boolean keepThreadAlive=true;
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 
 		/// PlaySoundFromUrl.PlayWav("https://www.kozco.com/tech/WAV-MP3.wav");
 		println("Open Macro Input (Java)  ");
@@ -71,13 +58,14 @@ public class OpenMacroInputJavaRuntime {
 		loadClipboardAsStaticToUse();
 		createOrLoadUserShortCutPreference();
 		writeListOfKeyAvailaibleAsFileForUser();
+		createTheBatchFileForWindow();
 		launchThreadThatListenToUDPToCreateQueue();
 		if (useRefreshConsoleState)
 			StartRefreshUIThread();
 		executer = new ExecuteCommandWithRobot();
 
-		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-
+		Thread.currentThread().setPriority(threadMainPriority);
+		
 		CommandParser parser = new CommandParser(keysUserShortcut);
 		int packageCount = 0;
 		while (true) {
@@ -88,9 +76,10 @@ public class OpenMacroInputJavaRuntime {
 					recievedPackaged = true;
 				String packageToProcess = dequeueNextPackage();
 
-				// if(CDebug.use)
-				System.out.println("Deqeue:" + packageToProcess.trim());
-				System.out.println("InWaiting:" + executeLaterStack.size());
+				if(CDebug.use) {
+					System.out.println("Deqeue:" + packageToProcess.trim());
+					System.out.println("InWaiting:" + executeLaterStack.size());
+				}
 				if (locker.length() > 0 && !packageToProcess.startsWith(locker)) {
 					if (CDebug.use)
 						System.out.println(
@@ -147,9 +136,49 @@ public class OpenMacroInputJavaRuntime {
 				executeLaterStack.remove(hasBeenExecuted.get(i));
 			}
 			hasBeenExecuted.clear();
-		}
-	}
+			Thread.sleep(1);
 
+		}
+
+		
+	}
+	private static void createTheBatchFileForWindow() {
+		String path = "StartJOMI.bat";
+		File f = new File(path);
+		if (!f.exists()) {
+			writeFile(path, "Title \"OMI (Java Runtime)\"\r\n"
+					+ "java -jar -Xmx1g -Xms64m jomi.jar 2501\r\n"
+					+ "#pause");
+		}
+		
+		path = "StopJOMI.bat";
+		f = new File(path);
+		if (!f.exists()) {
+			writeFile(path, "wmic Path win32_process Where \"CommandLine Like '%%JOMI.jar%%'\" Call Terminate\r\n"
+					+ "timeout 10");
+
+			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+			    try {
+					Desktop.getDesktop().browse(new URI("https://openmacroinput.page.link/jomifirstrun"));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			keepThreadAlive=false;
+			
+			System.exit(0);
+		}
+
+	}
+	protected void finalize() throws Throwable {
+
+		keepThreadAlive=false;
+		System.out.println("Finalized");
+	}
 	public static LinkedList<RobotCommand> hasBeenExecuted = new LinkedList<RobotCommand>();
 
 	private static void ExecuteCommand(RobotCommand cmd) {
@@ -206,10 +235,10 @@ public class OpenMacroInputJavaRuntime {
 			else
 				System.out.println(text.trim());
 		} else {
-			if (withIpInfo)
-				jTextArea.setText(getTextIpPortDescription() + getSupportLink() + "\n" + text.trim());
-			else
-				jTextArea.setText(text.trim());
+		//	if (withIpInfo)
+			//		jTextArea.setText(getTextIpPortDescription() + getSupportLink() + "\n" + text.trim());
+			//else
+			//	jTextArea.setText(text.trim());
 
 		}
 
@@ -278,10 +307,11 @@ public class OpenMacroInputJavaRuntime {
 			}
 
 		});
-		t.setPriority(Thread.MIN_PRIORITY);
+		t.setPriority(threadUDPPriority);
 		t.start();
 
 	}
+	
 
 	private static void launchThreadThatListenToUDPToCreateQueue() {
 		Thread t = new Thread(new Runnable() {
@@ -297,7 +327,7 @@ public class OpenMacroInputJavaRuntime {
 					byte[] buffer = new byte[8192];
 					Charset cd = Charset.forName("UTF-8");
 					String str = "";
-					while (true) {
+					while (keepThreadAlive) {
 
 						DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 						server.receive(packet);
@@ -307,20 +337,39 @@ public class OpenMacroInputJavaRuntime {
 							System.out.println("P(" + m_receivedPackage.size() + "):" + str);
 						addPackageToWait(str);
 						packet.setLength(buffer.length);
+						buffer= new byte[8192];
 						//System.out.println("-To-");
 					}
 
 				} catch (SocketException e) {
 					OpenMacroInputJavaRuntime.DisplayException(e);
 					e.printStackTrace();
+					if (server != null)
+						server.close();
+					keepThreadAlive=false;
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					System.exit(0);
 				} catch (IOException e) {
 					OpenMacroInputJavaRuntime.DisplayException(e);
 					e.printStackTrace();
-				} finally {
-
 					if (server != null)
 						server.close();
-						System.exit(0);
+					keepThreadAlive=false;
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					System.exit(0);
+				} finally {
+
+					
 				}
 			}
 
@@ -334,7 +383,7 @@ public class OpenMacroInputJavaRuntime {
 		clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	}
 
-	public static JFrame frame;
+	//public static JFrame frame;
 
 	private static void displayFrameToDebugAndCloseProcess(String[] args) {
 
@@ -343,7 +392,13 @@ public class OpenMacroInputJavaRuntime {
 					+ StringPlus.join(" ", args) + "\n" + getSupportLink() + "\n"
 					+ "Commands (P ress, R elease, S troke) :\n" + "- ks:[keyname:string]:\n" + "- ms:[0,1,2]\n"
 					+ "- wh:[wheel:int]\n" + "- mm:[x:int]:[y:int]\n" + "- ct:[text]\n"
-					+ "Code: https://github.com/EloiStree/2020_02_09_OpenMacroInput\n";
+					+ "Code: https://openmacroinput.page.link/jomicode\n"
+					+ "Support the project: https://openmacroinput.page.link/support\n"
+					+ "Hello World Tutorial: https://openmacroinput.page.link/hellojomi\n"
+					+ "Discord: https://eloistree.page.link/discord\n"
+					+ "Version: 2021-12-30\n\n"
+					+ "The application is running...\n(Close it when you done with it)\n"
+					;
 
 			if (useConsole) {
 				System.out.println("Open Macro Input (Java Runtime)");
@@ -351,17 +406,17 @@ public class OpenMacroInputJavaRuntime {
 
 			} else {
 
-				frame = new JFrame("Open Macro Input (Java Runtime)");
-				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				//	frame = new JFrame("Open Macro Input (Java Runtime)");
+				//	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-				jTextArea = new JTextArea();
-				jTextArea.setBackground(new Color(249f / 255f, 104f / 255f, 84f / 255f, 1f));
+				//jTextArea = new JTextArea();
+				//jTextArea.setBackground(new Color(249f / 255f, 104f / 255f, 84f / 255f, 1f));
 
-				frame.getContentPane().add(jTextArea);
-				frame.pack();
+				//frame.getContentPane().add(jTextArea);
+				//frame.pack();
 
-				frame.setLocationRelativeTo(null);
-				frame.setVisible(true);
+				//frame.setLocationRelativeTo(null);
+				//frame.setVisible(true);
 			}
 		}
 

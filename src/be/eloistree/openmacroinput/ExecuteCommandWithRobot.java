@@ -31,6 +31,8 @@ import be.eloistree.openmacroinput.command.MouseClickCommand;
 import be.eloistree.openmacroinput.command.MouseMoveCommand;
 import be.eloistree.openmacroinput.command.MouseMoveCommand.MoveType;
 import be.eloistree.openmacroinput.command.MouseMoveCommand.MoveTypeValue;
+import be.eloistree.openmacroinput.command.MouseMoveOneAxisCommand;
+import be.eloistree.openmacroinput.command.MouseMoveOneAxisCommand.MoveAxisType;
 import be.eloistree.openmacroinput.convertiontables.KeyEventAsString;
 import be.eloistree.openmacroinput.command.MouseScrollCommand;
 import be.eloistree.openmacroinput.command.OpenURLCommand;
@@ -53,7 +55,7 @@ public class ExecuteCommandWithRobot {
 		try {
 			robot = new Robot();
 			robot.setAutoDelay(2);
-			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+			//Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 			cmdUtility= new  CmdUtility(false, false);
 			clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 			toolkit = Toolkit.getDefaultToolkit();
@@ -68,6 +70,7 @@ public class ExecuteCommandWithRobot {
 		else if( cmd instanceof  KillTheProgramCommand ) execute((KillTheProgramCommand)cmd);
 		else if( cmd instanceof  MouseClickCommand ) execute((MouseClickCommand)cmd);
 		else if( cmd instanceof  MouseMoveCommand ) execute((MouseMoveCommand)cmd);
+		else if( cmd instanceof  MouseMoveOneAxisCommand ) execute((MouseMoveOneAxisCommand)cmd);
 		else if( cmd instanceof  MouseScrollCommand ) execute((MouseScrollCommand)cmd);
 		else if( cmd instanceof  OpenURLCommand ) execute((OpenURLCommand)cmd);
 		else if( cmd instanceof  EmbraceCommand ) execute((EmbraceCommand)cmd);
@@ -178,16 +181,70 @@ public class ExecuteCommandWithRobot {
 			
 		 if(cmd.m_moveTypeValueHorizontal==MoveTypeValue.InPourcent)
 			 x_L2R*= screenSize.width;
-		 if(cmd.m_moveTypeValueVertical==MoveTypeValue.InPourcent)
+		 if(cmd.m_moveTypeValueVertical==MoveTypeValue.InPourcent) {
 			 y_B2T*= screenSize.height;
+			 
+		 }
 		 
 		 if(cmd.m_moveType==MoveType.Add) {
 			 Point p =MouseInfo.getPointerInfo().getLocation();
-			 x_L2R+=p.x; 
-			 y_B2T+=p.y;
+			 x_L2R=p.x+x_L2R; 
+			 y_B2T=p.y+y_B2T;
 		 }
+		 System.out.println("Move x"+(int)x_L2R+"|y"+(int) y_B2T+" w"+screenSize.width+" h"+screenSize.height);
 		  
-		  robot.mouseMove((int)x_L2R,(int) y_B2T);
+		  robot.mouseMove((int)x_L2R,(int)(screenSize.height-y_B2T));
+	}
+	public void execute(MouseMoveOneAxisCommand cmd) {
+		
+		 float value=cmd.m_axisMoveValue;
+		 int absoluteValueInPx=0;
+		 Dimension screenSize =toolkit.getScreenSize();
+		 Point p =MouseInfo.getPointerInfo().getLocation();
+		// I AM HERE
+/*
+		 if(cmd.m_moveTypeValueVertical==MoveTypeValue.InPourcent) {
+			 if(cmd.m_moveAxisType==MoveAxisType.Left2Right || 
+					 cmd.m_moveAxisType==MoveAxisType.Right2Left )
+				 value*=screenSize.width;
+			 
+			 if(cmd.m_moveAxisType==MoveAxisType.Bot2Top || 
+					 cmd.m_moveAxisType==MoveAxisType.Top2Bot )
+				 value*=screenSize.height;
+		 }
+		 if(cmd.m_moveType==MoveType.Set) {
+
+			 if( cmd.m_moveAxisType==MoveAxisType.Top2Bot ) {}
+				 value=screenSize.height-value;
+			 if( cmd.m_moveAxisType==MoveAxisType.Left2Right ) {}
+				 value=screenSize.width-value;
+		 }
+		 
+		 else if(cmd.m_moveType==MoveType.Add) {
+			 if( cmd.m_moveAxisType==MoveAxisType.Left2Right ) {}
+			 value=p.x+value;
+			 if( cmd.m_moveAxisType==MoveAxisType.Left2Right ) {}
+			 value=p.x-value;
+	
+	
+			 if( cmd.m_moveAxisType==MoveAxisType.Bot2Top ) {}
+			 value=p.y+value;
+			 if( cmd.m_moveAxisType==MoveAxisType.Left2Right ) {}
+			 value=p.y-value;
+	
+		 }
+		 
+		  
+
+		 if(cmd.m_moveAxisType==MoveAxisType.Left2Right || 
+				 cmd.m_moveAxisType==MoveAxisType.Right2Left )
+		  robot.mouseMove(absoluteValueInPx,p.y);
+		 
+		 if(cmd.m_moveAxisType==MoveAxisType.Bot2Top || 
+				 cmd.m_moveAxisType==MoveAxisType.Top2Bot )
+		  robot.mouseMove(p.x,absoluteValueInPx);
+		  */
+		 
 	}
 	public void execute(MouseScrollCommand cmd) {
 		

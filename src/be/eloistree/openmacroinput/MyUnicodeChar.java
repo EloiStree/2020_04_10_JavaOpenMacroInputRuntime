@@ -15,9 +15,21 @@ public class MyUnicodeChar {
 			public static final char split='裂';
 			public static final char sandTime= '⌛';
 			public static final String mouse="🖱";
+			public static final String mouseType2="🖯";
+			public static final String mouseType3="🖰";
+			public static final String mouseType4="🐁";
+			public static final String textDocument="🖹";
+			public static final char arrowRight='→';
+			public static final char arrowLeft='←';
+			public static final char arrowUp='↑';
+			public static final char arrowDown='↓';
 			
 			public static String arrows() {
 				return ""+press+stroke+release;
+			}
+
+			public static String arrowslrtd() {
+				return ""+arrowLeft+arrowRight+arrowUp+arrowDown;
 			}
 }	
 
