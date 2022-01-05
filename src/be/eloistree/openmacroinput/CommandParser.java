@@ -291,9 +291,11 @@ public class CommandParser {
 		
 		boolean isRelative=true;
 
+		if(CDebug.use) {
 		System.out.println("--------------#start#----------------------");
 		System.out.println("------------------------------------");
 		System.out.println(">0>"+shortcut);
+		}
 		String txt= shortcut.trim();
 		char [] ar =txt.toCharArray();
 		if(txt.charAt(0)+""==MyUnicodeChar.mouse)
@@ -314,9 +316,11 @@ public class CommandParser {
 			for (int j = 0; j <= matcher.groupCount(); j++) {
 				String gtext = matcher.group(j).trim();
 				if (gtext.length() > 1) {
+					if(CDebug.use) {
+						
 						System.out.println("------------------------------------");
 						System.out.println("Group c " + i + ": " + gtext);
-
+					}
 					ArrowDirectionType dir = ArrowDirectionType.Left;
 					boolean found=false;
 					char c =gtext.charAt(0);
@@ -334,7 +338,8 @@ public class CommandParser {
 					}
 					gtext=gtext.substring(1);
 
-					System.out.println(">3>"+found+":"+dir);
+					if(CDebug.use) 
+						System.out.println(">3>"+found+":"+dir);
 					if(found ) {
 						
 						String valueAsString= gtext;
@@ -347,7 +352,8 @@ public class CommandParser {
 						float value =0;
 						//try {
 							valueAsString = valueAsString.replace("[^0-9\\.,]" ,"");
-							System.out.println(">4>"+moveTypeValue+":"+valueType+":"+valueAsString);
+
+							if(CDebug.use) 	System.out.println(">4>"+moveTypeValue+":"+valueType+":"+valueAsString);
 							
 							value =Float.parseFloat(valueAsString);
 						
@@ -356,13 +362,14 @@ public class CommandParser {
 							//}
 
 							RobotCommand cmd=null;
-						System.out.println(">5>"+moveTypeValue+":"+valueType+":"+valueAsString+":"+value+":"+dir);
+
+							if(CDebug.use) System.out.println(">5>"+moveTypeValue+":"+valueType+":"+valueAsString+":"+value+":"+dir);
 						if(isRelative) {
 							
 							if(dir==CommandParser.ArrowDirectionType.Left)
-							cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Left2Right, value));
+							cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Right2Left, value));
 							if(dir==CommandParser.ArrowDirectionType.Right)
-								cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Right2Left, value));
+								cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Left2Right , value));
 							if(dir==CommandParser.ArrowDirectionType.Up)
 								cmd=(new MouseMoveOneAxisCommand(moveTypeValue, valueType, MoveAxisType.Bot2Top, value));
 							if(dir==CommandParser.ArrowDirectionType.Down)
@@ -392,7 +399,8 @@ public class CommandParser {
 			}
 		}
 		/////////
-		System.out.println("--------------#end#----------------------");
+
+		if(CDebug.use) System.out.println("--------------#end#----------------------");
 
 		
 	}

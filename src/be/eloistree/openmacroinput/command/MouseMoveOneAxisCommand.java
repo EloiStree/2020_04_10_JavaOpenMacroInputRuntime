@@ -28,7 +28,7 @@ public class MouseMoveOneAxisCommand extends RobotCommand {
 	
 	@Override
 	public String toString() {
-		return String.format("%s:%s %s %s", "Mouse Axis Move"
+		return String.format("%s:%s %s %s %s", "Mouse Axis Move"
 				,m_moveType.toString()
 				,m_moveTypeValueVertical
 				, m_moveAxisType,m_axisMoveValue);

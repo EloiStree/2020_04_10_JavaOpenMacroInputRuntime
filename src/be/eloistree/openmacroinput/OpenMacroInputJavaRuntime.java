@@ -49,6 +49,7 @@ public class OpenMacroInputJavaRuntime {
 	public static boolean useRefreshConsoleState = false;
 	public static boolean keepThreadAlive=true;
 
+	public static String lastVersionDate="2022-01-05";
 	public static void main(String[] args) throws IOException, InterruptedException {
 
 		/// PlaySoundFromUrl.PlayWav("https://www.kozco.com/tech/WAV-MP3.wav");
@@ -396,7 +397,7 @@ public class OpenMacroInputJavaRuntime {
 					+ "Support the project: https://openmacroinput.page.link/support\n"
 					+ "Hello World Tutorial: https://openmacroinput.page.link/hellojomi\n"
 					+ "Discord: https://eloistree.page.link/discord\n"
-					+ "Version: 2021-12-30\n\n"
+					+ "Version: "+lastVersionDate+"\n\n"
 					+ "The application is running...\n(Close it when you done with it)\n"
 					;
 

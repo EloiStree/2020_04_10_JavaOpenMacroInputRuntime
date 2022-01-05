@@ -174,7 +174,8 @@ public class ExecuteCommandWithRobot {
 		return 0;
 	}
 	public void execute(MouseMoveCommand cmd) {
-		
+
+		// 00 is up left of screen in java
 		 float x_L2R=cmd.m_leftToRight; 
 		 float y_B2T=cmd.m_botToTop;
 		 Dimension screenSize =toolkit.getScreenSize();
@@ -191,59 +192,59 @@ public class ExecuteCommandWithRobot {
 			 x_L2R=p.x+x_L2R; 
 			 y_B2T=p.y+y_B2T;
 		 }
-		 System.out.println("Move x"+(int)x_L2R+"|y"+(int) y_B2T+" w"+screenSize.width+" h"+screenSize.height);
-		  
-		  robot.mouseMove((int)x_L2R,(int)(screenSize.height-y_B2T));
+		 //System.out.println("Move x"+(int)x_L2R+"|y"+(int) y_B2T+" w"+screenSize.width+" h"+screenSize.height);
+
+		 int x=(int)x_L2R,
+		 y=(int)(screenSize.height-y_B2T);
+		 
+		// System.out.println("x:"+x+"y:"+y+ " vs "+cmd);
+		  robot.mouseMove(x,y);
 	}
 	public void execute(MouseMoveOneAxisCommand cmd) {
 		
-		 float value=cmd.m_axisMoveValue;
-		 int absoluteValueInPx=0;
+		// 00 is up left of screen in java
+		
 		 Dimension screenSize =toolkit.getScreenSize();
 		 Point p =MouseInfo.getPointerInfo().getLocation();
-		// I AM HERE
-/*
+		 boolean isHorizontal =cmd.m_moveAxisType==MoveAxisType.Left2Right || 
+				 cmd.m_moveAxisType==MoveAxisType.Right2Left;
+
+		 float relativeValue =cmd.m_axisMoveValue;
 		 if(cmd.m_moveTypeValueVertical==MoveTypeValue.InPourcent) {
-			 if(cmd.m_moveAxisType==MoveAxisType.Left2Right || 
-					 cmd.m_moveAxisType==MoveAxisType.Right2Left )
-				 value*=screenSize.width;
+			 if(isHorizontal)
+				 relativeValue*=screenSize.width;
+			 else
+				 relativeValue*=screenSize.height;
+		 }
+			
+
+		 float absolutePixelX =p.x;
+		 float absolutePixelY=p.y;
+		 
+		 if(cmd.m_moveType==MoveType.Add) {
 			 
-			 if(cmd.m_moveAxisType==MoveAxisType.Bot2Top || 
-					 cmd.m_moveAxisType==MoveAxisType.Top2Bot )
-				 value*=screenSize.height;
+			 if(cmd.m_moveAxisType==MoveAxisType.Left2Right )
+				 absolutePixelX+=relativeValue;
+			 else if (cmd.m_moveAxisType==MoveAxisType.Right2Left) 
+				 absolutePixelX-=relativeValue;
+			 else if (cmd.m_moveAxisType==MoveAxisType.Bot2Top) 
+				 absolutePixelY-=relativeValue;
+			 else if (cmd.m_moveAxisType==MoveAxisType.Top2Bot) 
+				 absolutePixelY+=relativeValue;
+		 } 
+		 else if(cmd.m_moveType==MoveType.Set) {
+			 if(cmd.m_moveAxisType==MoveAxisType.Left2Right )
+				 absolutePixelX=relativeValue;
+			 else if (cmd.m_moveAxisType==MoveAxisType.Right2Left) 
+				 absolutePixelX=screenSize.width-relativeValue;
+			 else if (cmd.m_moveAxisType==MoveAxisType.Top2Bot ) 
+				 absolutePixelY=relativeValue;
+			 else if (cmd.m_moveAxisType==MoveAxisType.Bot2Top) 
+				 absolutePixelY=screenSize.height-relativeValue;
 		 }
-		 if(cmd.m_moveType==MoveType.Set) {
 
-			 if( cmd.m_moveAxisType==MoveAxisType.Top2Bot ) {}
-				 value=screenSize.height-value;
-			 if( cmd.m_moveAxisType==MoveAxisType.Left2Right ) {}
-				 value=screenSize.width-value;
-		 }
-		 
-		 else if(cmd.m_moveType==MoveType.Add) {
-			 if( cmd.m_moveAxisType==MoveAxisType.Left2Right ) {}
-			 value=p.x+value;
-			 if( cmd.m_moveAxisType==MoveAxisType.Left2Right ) {}
-			 value=p.x-value;
-	
-	
-			 if( cmd.m_moveAxisType==MoveAxisType.Bot2Top ) {}
-			 value=p.y+value;
-			 if( cmd.m_moveAxisType==MoveAxisType.Left2Right ) {}
-			 value=p.y-value;
-	
-		 }
-		 
-		  
-
-		 if(cmd.m_moveAxisType==MoveAxisType.Left2Right || 
-				 cmd.m_moveAxisType==MoveAxisType.Right2Left )
-		  robot.mouseMove(absoluteValueInPx,p.y);
-		 
-		 if(cmd.m_moveAxisType==MoveAxisType.Bot2Top || 
-				 cmd.m_moveAxisType==MoveAxisType.Top2Bot )
-		  robot.mouseMove(p.x,absoluteValueInPx);
-		  */
+		 //System.out.println("x:"+absolutePixelX+"y:"+absolutePixelY+ " vs "+cmd );
+		  robot.mouseMove((int)absolutePixelX,(int)absolutePixelY);
 		 
 	}
 	public void execute(MouseScrollCommand cmd) {
