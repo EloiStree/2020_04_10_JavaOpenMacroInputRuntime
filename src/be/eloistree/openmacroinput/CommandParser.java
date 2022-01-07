@@ -24,6 +24,7 @@ import be.eloistree.openmacroinput.command.MouseMoveOneAxisCommand;
 import be.eloistree.openmacroinput.command.MouseMoveOneAxisCommand.MoveAxisType;
 import be.eloistree.openmacroinput.command.MouseMoveCommand;
 import be.eloistree.openmacroinput.command.RobotCommand;
+import be.eloistree.openmacroinput.command.SaveAndLoadScreenCursorPosition;
 import be.eloistree.openmacroinput.command.UnicodeCommand;
 import be.eloistree.openmacroinput.command.WindowCmdLineToExecuteCommand;
 import be.eloistree.openmacroinput.enums.PressType;
@@ -105,7 +106,7 @@ public class CommandParser {
 		ArrayList<RobotCommand> result = new ArrayList<RobotCommand>();
 		
 		RobotCommandRef robotCommand = new RobotCommandRef();
-		
+		//System.out.println("Package:"+packageToProcess);
 		if (isItSomeShortcutCommandsV2(packageToProcess, result, whenToDo)) {
 
 			timeManagedByConversion=true;
@@ -213,6 +214,8 @@ public class CommandParser {
 	private static String regexTimeWatch =MyUnicodeChar.watchTime+"[0-9h:s]+";
 	private static String regexMouseAction = MyUnicodeChar.mouse+"[a-zA-Z0-9."+MyUnicodeChar.arrowslrtd()+"]+";
 	
+	private static String regexMouseSaveAction = MyUnicodeChar.mouse+"[><]"+MyUnicodeChar.floppydisk+"[a-zA-Z0-9]*";
+	
 
 	private boolean isItSomeShortcutCommandsV2(String packageToProcess, ArrayList<RobotCommand> result, ExecuteTime startPoint) {
 
@@ -236,7 +239,6 @@ public class CommandParser {
 		//System.out.println(">>TEST GS>"+whenToExecute.getTimeInMillis());
 		if(startPoint!=null && startPoint.m_whenToExecute!=null)
 			whenToExecute=startPoint.m_whenToExecute;
-
 			for (int i = 0; i < shortcuts.size(); i++) {
 				String shortcut = shortcuts.get(i);
 				
@@ -265,6 +267,14 @@ public class CommandParser {
 					int millisecondExtracted= extractTimeInMSFromWatch(shortcut,whenToExecute );
 					whenToExecute = AddMillisecondsToTime(whenToExecute, millisecondExtracted);
 					
+				}else if(shortcut.indexOf(""+MyUnicodeChar.floppydisk)>-1 &&
+						shortcut.indexOf(""+MyUnicodeChar.mouse)>-1) {
+
+
+					System.out.println(">save & load>"+shortcut);
+					ConvertTextToActionsSaveAndLoadMouse(result, shortcut, whenToExecute);
+					
+					
 				}
 				else if(shortcut.indexOf(""+MyUnicodeChar.mouse)>-1) {
 
@@ -284,6 +294,45 @@ public class CommandParser {
 		return result.size()>0;
 	}
 
+	
+	private void ConvertTextToActionsSaveAndLoadMouse(ArrayList<RobotCommand> result, String shortcut, Calendar whenToExecute) {
+		
+		String txt= shortcut.trim();
+		
+		int mouse =txt.indexOf(MyUnicodeChar.mouse);
+		if(mouse<0)
+			return;
+		
+		int direction=-1;
+		direction=txt.indexOf("<");
+		if(direction<0)
+			direction=txt.indexOf(">");
+		char directionChar = txt.charAt(direction);
+		int floppy= txt.indexOf(MyUnicodeChar.floppydisk);
+		String name = txt.substring(floppy).replace(MyUnicodeChar.floppydisk, "").trim();
+
+		//if(CDebug.use) 
+		//System.out.println("\n> "+mouse +"|"+ directionChar+"|"+floppy+"|Name:"+name );
+		
+		
+		
+		SaveAndLoadScreenCursorPosition.ActionType actionTYpe =
+				directionChar=='>'?
+						SaveAndLoadScreenCursorPosition.ActionType.Save:
+						SaveAndLoadScreenCursorPosition.ActionType.Load;
+		RobotCommand cmd=new SaveAndLoadScreenCursorPosition(name,actionTYpe );
+		
+		if(cmd!=null &&  whenToExecute!=null) {
+			cmd.setTimeToExecute(new ExecuteTime( whenToExecute));
+			result.add(cmd);
+		}
+
+		
+		
+		
+	}
+	
+	
 	public enum ArrowDirectionType{Left,Right, Up, Down}
 	public enum ValuePxOrPourcentType{Px, Pourcent}
 	public String mouseMoveRegex ="["+MyUnicodeChar.arrowslrtd()+"][\\d\\.]+";
@@ -707,7 +756,7 @@ public class CommandParser {
 		return shortcut;
 	}//*/
 
-	private static Pattern r =Pattern.compile(String.format("(%s)|(%s)|(%s)|(%s)|(%s)", regexCommand,regexText,regexTime, regexTimeWatch,regexMouseAction));
+	private static Pattern r =Pattern.compile(String.format("(%s)|(%s)|(%s)|(%s)|(%s)|(%s)", regexCommand,regexText,regexTime, regexTimeWatch,regexMouseAction,regexMouseSaveAction));
 	private static ArrayList<String> FindArrowShortcutWithText(String value) {
 		//System.out.println("Hello");
 		//System.out.println("Bye");

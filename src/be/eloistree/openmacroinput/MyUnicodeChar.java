@@ -23,6 +23,7 @@ public class MyUnicodeChar {
 			public static final char arrowLeft='←';
 			public static final char arrowUp='↑';
 			public static final char arrowDown='↓';
+			public static final String floppydisk="💾";
 			
 			public static String arrows() {
 				return ""+press+stroke+release;

@@ -2,6 +2,7 @@ package be.eloistree.openmacroinput;
 
 import java.awt.AWTException;
 import java.awt.Desktop;
+import java.awt.Desktop.Action;
 import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Calendar;
+import java.util.Hashtable;
 
 import be.eloistree.copyfromweb.ImageToClipboard;
 import be.eloistree.debug.CDebug;
@@ -38,6 +40,8 @@ import be.eloistree.openmacroinput.command.MouseScrollCommand;
 import be.eloistree.openmacroinput.command.OpenURLCommand;
 import be.eloistree.openmacroinput.command.PastCommand;
 import be.eloistree.openmacroinput.command.RobotCommand;
+import be.eloistree.openmacroinput.command.SaveAndLoadScreenCursorPosition;
+import be.eloistree.openmacroinput.command.SaveAndLoadScreenCursorPosition.ActionType;
 import be.eloistree.openmacroinput.command.UnicodeCommand;
 import be.eloistree.openmacroinput.command.WindowCmdLineToExecuteCommand;
 import be.eloistree.openmacroinput.enums.PressType;
@@ -79,10 +83,35 @@ public class ExecuteCommandWithRobot {
 		else if( cmd instanceof  UnicodeCommand ) execute((UnicodeCommand)cmd);	
 		else if( cmd instanceof  WindowCmdLineToExecuteCommand ) execute((WindowCmdLineToExecuteCommand)cmd);
 		else if( cmd instanceof  ImageURLToClipboardCommand ) execute((ImageURLToClipboardCommand)cmd);
+		else if (cmd instanceof SaveAndLoadScreenCursorPosition) execute((SaveAndLoadScreenCursorPosition)cmd);
 		else {
 			if(CDebug.use)System.out.println("Command not take in charge: "+cmd);
 		}
 		
+	}
+	
+	public Hashtable<String, Point> screenPositionsSave= new Hashtable<String, Point>();
+	
+	private void execute(SaveAndLoadScreenCursorPosition cmd) {
+
+		 String key =cmd.screenPositionName.toLowerCase();
+		 boolean containKey = screenPositionsSave.containsKey(key);
+		 if(cmd.actionType==ActionType.Save)
+		 {
+			 Point p =MouseInfo.getPointerInfo().getLocation();
+			 if( !containKey) {
+				 screenPositionsSave.put(key, p);
+			}
+			 else {
+				 screenPositionsSave.replace(key, p);
+			 } 
+		 }
+		 if(cmd.actionType== ActionType.Load) {
+			 if( containKey) {
+				 Point p = screenPositionsSave.get(key);
+				  robot.mouseMove(p.x,p.y);
+			 }
+		 }
 	}
 	ImageURLToClipboardCommand c;
 	public void execute(ImageURLToClipboardCommand cmd) {
