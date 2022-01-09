@@ -150,6 +150,7 @@ public class ExecuteCommandWithRobot {
 	
 	public long m_timeBetweenCommandInMs=0;
 	public void execute(KeyStrokeCommand cmd) {
+		System.out.println(">>"+GetIdFrom(cmd.m_javaKeyName));
 		if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Press ) {
 			
 
@@ -183,6 +184,7 @@ public class ExecuteCommandWithRobot {
 		return KeyEventAsString.ConvertStringToKeyEvent(javaKeyName);
 	}
 	public void execute(KillTheProgramCommand cmd) {
+		System.out.println("Exit Requested.");
 		System.exit(0);
 	}
 	
@@ -209,24 +211,26 @@ public class ExecuteCommandWithRobot {
 		 float y_B2T=cmd.m_botToTop;
 		 Dimension screenSize =toolkit.getScreenSize();
 			
-		 if(cmd.m_moveTypeValueHorizontal==MoveTypeValue.InPourcent)
-			 x_L2R*= screenSize.width;
+		 if(cmd.m_moveTypeValueHorizontal==MoveTypeValue.InPourcent) {
+			 x_L2R*= (float) screenSize.width;	 
+		 }
 		 if(cmd.m_moveTypeValueVertical==MoveTypeValue.InPourcent) {
-			 y_B2T*= screenSize.height;
+			 y_B2T*= (float) screenSize.height;
 			 
 		 }
 		 
 		 if(cmd.m_moveType==MoveType.Add) {
 			 Point p =MouseInfo.getPointerInfo().getLocation();
-			 x_L2R=p.x+x_L2R; 
-			 y_B2T=p.y+y_B2T;
+			 x_L2R =  x_L2R + p.x ; 
+			 y_B2T =  y_B2T + (screenSize.height - p.y) ;
 		 }
 		 //System.out.println("Move x"+(int)x_L2R+"|y"+(int) y_B2T+" w"+screenSize.width+" h"+screenSize.height);
 
-		 int x=(int)x_L2R,
-		 y=(int)(screenSize.height-y_B2T);
+		 int x=0,y=0;
+		 x = (int) x_L2R;
+		 y = (int) (screenSize.height-y_B2T);
 		 
-		// System.out.println("x:"+x+"y:"+y+ " vs "+cmd);
+		  System.out.println("x:"+x+"y:"+y+ " vs "+cmd);
 		  robot.mouseMove(x,y);
 	}
 	public void execute(MouseMoveOneAxisCommand cmd) {

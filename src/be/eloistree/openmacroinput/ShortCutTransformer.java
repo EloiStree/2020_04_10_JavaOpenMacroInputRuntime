@@ -29,10 +29,30 @@ public class ShortCutTransformer {
 			System.out.println("Compress:" + text);
 
 		text = ReplaceMouseTypeByMouse(text);
+		{
+			text = text.toLowerCase();
+			text = text.replaceAll(MyUnicodeChar.mouse+"l", MyUnicodeChar.mouse+"leftclick");
+			text = text.replaceAll(MyUnicodeChar.mouse+"r", MyUnicodeChar.mouse+"rightclick");
+			text = text.replaceAll(MyUnicodeChar.mouse+"c", MyUnicodeChar.mouse+"middleclick");
+			text = text.replaceAll(MyUnicodeChar.mouse+"m", MyUnicodeChar.mouse+"middleclick");
+	
+			text = text.replaceAll(MyUnicodeChar.mouse+"leftclick↓", MyUnicodeChar.mouse+"leftclick↓");
+			text = text.replaceAll(MyUnicodeChar.mouse+"rightclick↓", MyUnicodeChar.mouse+"rightclick↓");
+			text = text.replaceAll(MyUnicodeChar.mouse+"middleclick↓", MyUnicodeChar.mouse+"middleclick↓");
+			text = text.replaceAll(MyUnicodeChar.mouse+"leftclick↑", MyUnicodeChar.mouse+"leftclick↑");
+			text = text.replaceAll(MyUnicodeChar.mouse+"rightclick↑", MyUnicodeChar.mouse+"rightclick↑");
+			text = text.replaceAll(MyUnicodeChar.mouse+"middleclick↑", MyUnicodeChar.mouse+"middleclick↑");
+			text = text.replaceAll(MyUnicodeChar.mouse+"leftclick↕", MyUnicodeChar.mouse+"leftclick");
+			text = text.replaceAll(MyUnicodeChar.mouse+"rightclick↕", MyUnicodeChar.mouse+"rightclick");
+			text = text.replaceAll(MyUnicodeChar.mouse+"middleclick↕", MyUnicodeChar.mouse+"middleclick");
+		}
 		text = ReplaceMouseByShortcutEquivalent(text);
 
 		text = replaceMaintainToShortcutEquivalent(text);
 		text = replaceMouseMoveShortToShortcutEquivalent(text);
+
+	
+		
 
 		text = ReplaceTimeBiggerThenNotation(text);
 		IntegerWrapper foundIteration = new IntegerWrapper(1);

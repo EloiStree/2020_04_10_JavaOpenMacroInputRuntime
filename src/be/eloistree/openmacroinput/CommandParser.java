@@ -55,7 +55,8 @@ public class CommandParser {
 	
 	public ArrayList<RobotCommand> getCommandsFrom(String packageToProcess) {
 
-		
+		System.out.println("Package:"+packageToProcess);
+		packageToProcess = packageToProcess.trim();
 		
 		ExecuteTime whenToDo = null;
 		if(packageToProcess.indexOf("t:")==0) {
@@ -112,6 +113,8 @@ public class CommandParser {
 			timeManagedByConversion=true;
 
 		//	System.out.println(">>TEST   RTERTS>");
+
+			System.out.println("Package as shortcut:"+packageToProcess);
 		}
 		
 		else if (isItCopyPastCommand(packageToProcess, robotCommand)) {
@@ -219,7 +222,7 @@ public class CommandParser {
 
 	private boolean isItSomeShortcutCommandsV2(String packageToProcess, ArrayList<RobotCommand> result, ExecuteTime startPoint) {
 
-		if (!(packageToProcess.startsWith("sc:")))
+		if (!(packageToProcess.indexOf("sc:")==0))
 			return false;
 		if (packageToProcess.length() <= 3)
 			return false;
@@ -227,7 +230,7 @@ public class CommandParser {
 		content  = ShortCutTransformer.ParseComplexeShortcutToBasicShortCut(content);
 		//Pattern.compile(String.format("(%s)|(%s)", regexCommand,regexText));
 
-		if(CDebug.use)
+		//if(CDebug.use)
 		System.out.println(">>>"+content);
 		content= replaceComboStrokeByKeyPressions(content);
 		if(CDebug.use)
@@ -335,7 +338,7 @@ public class CommandParser {
 	
 	public enum ArrowDirectionType{Left,Right, Up, Down}
 	public enum ValuePxOrPourcentType{Px, Pourcent}
-	public String mouseMoveRegex ="["+MyUnicodeChar.arrowslrtd()+"][\\d\\.]+";
+	public String mouseMoveRegex ="["+MyUnicodeChar.arrowslrtd()+"][\\d\\.%px]+";
 	private void ConvertTextToActions(ArrayList<RobotCommand> result, String shortcut, Calendar whenToExecute) {
 		
 		boolean isRelative=true;
@@ -400,7 +403,7 @@ public class CommandParser {
 						
 						float value =0;
 						//try {
-							valueAsString = valueAsString.replace("[^0-9\\.,]" ,"");
+							valueAsString = valueAsString.replaceAll("[^0-9\\.,]" ,"");
 
 							if(CDebug.use) 	System.out.println(">4>"+moveTypeValue+":"+valueType+":"+valueAsString);
 							
@@ -529,7 +532,7 @@ public class CommandParser {
 	}
 	
 	//https://regexr.com/554uh
-	private static String comboStroke ="([A-Za-z0-9"+MyUnicodeChar.arrows()+"]+)([\\s]*\\+[\\s]*[A-Za-z0-9"+MyUnicodeChar.arrows()+"]+)+";
+	private static String comboStroke ="([A-Za-z0-9]+)([\\s]*\\+[\\s]*[A-Za-z0-9+]+)+";
 	private static Pattern p2 = Pattern.compile(comboStroke);
 	private String replaceComboStrokeByKeyPressions(String content) {
 
@@ -551,14 +554,14 @@ public class CommandParser {
 			if (foundOne= m.find()) {
 				indexStart = m.start();
 				indexEnd = m.end();
-				//System.out.println("E"+indexStart+" "+p2.toString());
+				//System.out.println("E"+indexStart+" "+m.toString());
 				before = textProcessed.substring(0,indexStart);
 				found = textProcessed.substring(indexStart, indexEnd);
 				//System.out.println("Found>>"+found);
 				replacement =parseComboToShortCut(found);
 				//System.out.println("Replace by>>"+replacement);
 				  
-				textProcessed = textProcessed.substring(indexEnd+1);
+				textProcessed = textProcessed.substring(indexEnd);
 				result += before+replacement;
 				//result += " "+before+" "+replacement+" ";
 			}
@@ -780,9 +783,9 @@ public class CommandParser {
 		if (packageToProcess.charAt(1) == 'a')
 			moveTypeValue = MoveType.Add;
 
-		String content = packageToProcess.substring(3).trim();
+		String content = packageToProcess.substring(3).trim().toLowerCase();
 		content= content.replace("px", "");
-		content= content.replace("PX", "");
+		content= content.replace("%", "p");
 		String[] tokens = content.split(":");
 		if (tokens.length != 2)
 			return false;
@@ -791,14 +794,13 @@ public class CommandParser {
 		float yPx = 0;
 		MouseMoveCommand.MoveTypeValue xType, yType;
 		try {
-			xType = tokens[0].indexOf("p") > 0 || tokens[0].indexOf("%") > 0 ? MoveTypeValue.InPourcent : MoveTypeValue.InPixel;
-			yType = tokens[1].indexOf("p") > 0 || tokens[0].indexOf("%") > 0? MoveTypeValue.InPourcent : MoveTypeValue.InPixel;
+			xType = tokens[0].indexOf("p") > 0 ? MoveTypeValue.InPourcent : MoveTypeValue.InPixel;
+			yType = tokens[1].indexOf("p") > 0? MoveTypeValue.InPourcent : MoveTypeValue.InPixel;
 			tokens[0] = tokens[0].replace("p", "");
 			tokens[1] = tokens[1].replace("p", "");
-			tokens[0] = tokens[0].replace("%", "");
-			tokens[1] = tokens[1].replace("%", "");
 			xPx = Float.parseFloat(tokens[0]);
 			yPx = Float.parseFloat(tokens[1]);
+			System.out.println("> x"+xPx+" y"+yPx);
 		} catch (Exception e) {
 			return false;
 		}
@@ -854,8 +856,9 @@ public class CommandParser {
 	}
 
 	private boolean isItKeyStrokeCommand(String packageToProcess, RobotCommandRef robotCommand) {
-		if (!(packageToProcess.startsWith("ks:") || packageToProcess.startsWith("kr:")
-				|| packageToProcess.startsWith("kp:")))
+
+		if (!(packageToProcess.indexOf("ks:")==0 || packageToProcess.indexOf("kr:")==0
+				|| packageToProcess.indexOf("kp:")==0))
 			return false;
 		if (packageToProcess.length() <= 3)
 			return false;
@@ -866,12 +869,22 @@ public class CommandParser {
 		else if (c == 'p')
 			pt = PressType.Press;
 		String name = packageToProcess.substring(3).trim();
+		name = name.toLowerCase();
+		for (KeyEventId key : m_userShortcut.getRefToKeys()) {
+
+			if (name.contentEquals(key.GetShortcutName().toLowerCase())) {
+				robotCommand.ref = new KeyStrokeCommand(key.GetJavaName(), pt);
+				return true;
+			}
+		}
+		name = packageToProcess.substring(3).trim();
 		robotCommand.ref = new KeyStrokeCommand(name, pt);
 		return true;
+
 	}
 
 	private boolean isItKeyComboStrokeCommand(ArrayList<RobotCommand> result, String packageToProcess) {
-		if (!(packageToProcess.startsWith("ksc:") ))
+		if (!(packageToProcess.indexOf("ksc:")==0 ))
 			return false;
 		if (packageToProcess.length() <= 4)
 			return false;
@@ -879,29 +892,12 @@ public class CommandParser {
 		String content = packageToProcess.substring(4).trim();
 		if(content.trim().length()<=0) 
 			return false;
-		String [] lines = content.split("["+MyUnicodeChar.split+"|>&]");
+		String [] lines = content.split(""+MyUnicodeChar.split);
 		if(lines.length<=0) return false;
 		
 		for (int i = 0; i < lines.length; i++) {
-			String [] parts = lines[i].split("\\+");
-			if(parts.length<=0) return false; 
-			for (int j = 0; j < parts.length; j++) {
-				 parts[j] = parts[j].replaceAll("[^A-Za-z0-9]","").trim();
-			}
-			for (int j = 0; j < parts.length; j++) {
-				String part = parts[j];
-				
-
-				
-				AddValideWord(result, part, PressType.Press, null);
-				
-			}
-			for (int j = parts.length-1; j >=0 ; j--) {
-				String part = parts[j];
-
-				AddValideWord(result, part, PressType.Release, null);
-				
-			}
+			ArrayList<RobotCommand> found =getCommandsFrom(lines[i]);
+			result.addAll(found);
 		}
 		
 		
@@ -916,16 +912,17 @@ public class CommandParser {
 	}
 	
 	private boolean isItExitOrStopCommand(String packageToProcess, RobotCommandRef robotCommand) {
-		if (!(packageToProcess.startsWith("exit") || packageToProcess.startsWith("stop")))
+		packageToProcess = packageToProcess.trim();
+		if (!(packageToProcess.indexOf("exit")==0 || packageToProcess.indexOf("stop")==0))
 			return false;
-		if (!(packageToProcess.toLowerCase().trim() == "exit" || packageToProcess.toLowerCase().trim() == "stop"))
-			return false;
+		//if (!(packageToProcess.toLowerCase().trim() == "exit" || packageToProcess.toLowerCase().trim() == "stop"))
+		//	return false;
 		robotCommand.ref = new KillTheProgramCommand();
 		return true;
 	}
 
 	private boolean isItCopyPastCommand(String packageToProcess, RobotCommandRef cmdOut) {
-		if (!(packageToProcess.toLowerCase().startsWith("past:")))
+		if (!(packageToProcess.toLowerCase().indexOf("past:")==0))
 			return false;
 		if (packageToProcess.length() < 6)
 			return false;
@@ -934,7 +931,7 @@ public class CommandParser {
 		return true;
 	}
 	private boolean isItClipboardCommand(String packageToProcess, ArrayList<RobotCommand> result) {
-		if (!(packageToProcess.toLowerCase().startsWith("clipboard:")))
+		if (!(packageToProcess.toLowerCase().indexOf("clipboard:")==0))
 			return false;
 		if (packageToProcess.length() <= 10)
 			return false;
@@ -962,7 +959,7 @@ public class CommandParser {
 
 	
 	private boolean isItOpenWebPageCommand(String packageToProcess, RobotCommandRef robotCommand) {
-		if (!(packageToProcess.startsWith("url:")))
+		if (!(packageToProcess.indexOf("url:")==0))
 			return false;
 		if (packageToProcess.length() <= 4)
 			return false;
@@ -971,7 +968,7 @@ public class CommandParser {
 		return true;
 	}
 	private boolean isItUnicodeCommand(String packageToProcess,  RobotCommandRef robotCommand) {
-		if (!(packageToProcess.toLowerCase().startsWith("unicode:")))
+		if (!(packageToProcess.toLowerCase().indexOf("unicode:")==0))
 			return false;
 		if (packageToProcess.length() <= 8)
 			return false;
@@ -1006,7 +1003,7 @@ public class CommandParser {
 	}
 	
 	private boolean isItWindowCommandLineCommand(String packageToProcess, ArrayList<RobotCommand> result) {
-		if (!(packageToProcess.startsWith("cmd:")))
+		if (!(packageToProcess.indexOf("cmd:")==0))
 			return false;
 		if (packageToProcess.length() <= 4)
 			return false;
@@ -1016,7 +1013,7 @@ public class CommandParser {
 		return true;
 	}
 	private boolean isItImageToClipboardCommand(String packageToProcess,  RobotCommandRef robotCommand) {
-		if (!(packageToProcess.startsWith("img2clip:")))
+		if (!(packageToProcess.indexOf("img2clip:")==0))
 			return false;
 		if (packageToProcess.length() <= 9)
 			return false;

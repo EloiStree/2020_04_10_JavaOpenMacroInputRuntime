@@ -22,7 +22,7 @@ public class MouseMoveCommand extends RobotCommand {
 	
 	@Override
 	public String toString() {
-		return String.format("%s:%s %s%s-%s%s", "Mouse Move",m_moveType.toString(),m_leftToRight, m_moveTypeValueHorizontal.toString(),m_botToTop, m_moveTypeValueVertical.toString());
+		return String.format("%s:%s %s %s  %s %s", "Mouse Move",m_moveType.toString(),m_leftToRight, m_moveTypeValueHorizontal.toString(),m_botToTop, m_moveTypeValueVertical.toString());
 	}
 	
 }

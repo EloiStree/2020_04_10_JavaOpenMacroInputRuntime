@@ -54,11 +54,11 @@ public class OpenMacroInputJavaRuntime {
 
 		/// PlaySoundFromUrl.PlayWav("https://www.kozco.com/tech/WAV-MP3.wav");
 		println("Open Macro Input (Java)  ");
+		writeListOfKeyAvailaibleAsFileForUser();
 		setPortAndLockerFromMainArgs(args);
 		displayFrameToDebugAndCloseProcess(args);
 		loadClipboardAsStaticToUse();
 		createOrLoadUserShortCutPreference();
-		writeListOfKeyAvailaibleAsFileForUser();
 		createTheBatchFileForWindow();
 		launchThreadThatListenToUDPToCreateQueue();
 		if (useRefreshConsoleState)
@@ -392,7 +392,7 @@ public class OpenMacroInputJavaRuntime {
 			String textInitToDisplay = "IP: " + InetAddress.getLocalHost() + " Port:" + port + "\n" + "Args: "
 					+ StringPlus.join(" ", args) + "\n" + getSupportLink() + "\n"
 					+ "Commands (P ress, R elease, S troke) :\n" + "- ks:[keyname:string]:\n" + "- ms:[0,1,2]\n"
-					+ "- wh:[wheel:int]\n" + "- mm:[x:int]:[y:int]\n" + "- ct:[text]\n"
+					+ "- wh:[wheel:int]\n" + "- mm:[x:int]:[y:int]\n" + "- ct:[text]\n- ...\n"
 					+ "Code: https://openmacroinput.page.link/jomicode\n"
 					+ "Support the project: https://openmacroinput.page.link/support\n"
 					+ "Hello World Tutorial: https://openmacroinput.page.link/hellojomi\n"
