@@ -49,7 +49,7 @@ public class OpenMacroInputJavaRuntime {
 	public static boolean useRefreshConsoleState = false;
 	public static boolean keepThreadAlive=true;
 
-	public static String lastVersionDate="2022-01-05";
+	public static String lastVersionDate="2024-11-09";
 	public static void main(String[] args) throws IOException, InterruptedException {
 
 		/// PlaySoundFromUrl.PlayWav("https://www.kozco.com/tech/WAV-MP3.wav");
@@ -248,7 +248,9 @@ public class OpenMacroInputJavaRuntime {
 	}
 
 	private static String getSupportLink() {
-		return "Hope this tool is helping you. " + MyUnicodeChar.youRock + " \n" + "https://openmacroinput.com\n";
+		return "Hope this tool is helping you. " + MyUnicodeChar.youRock +
+				" \n" + "https://github.com/EloiStree\n"
+				+ "Last Version: "+lastVersionDate+"\n\n";
 	}
 
 	private static void createOrLoadUserShortCutPreference() throws IOException {
@@ -393,10 +395,10 @@ public class OpenMacroInputJavaRuntime {
 					+ StringPlus.join(" ", args) + "\n" + getSupportLink() + "\n"
 					+ "Commands (P ress, R elease, S troke) :\n" + "- ks:[keyname:string]:\n" + "- ms:[0,1,2]\n"
 					+ "- wh:[wheel:int]\n" + "- mm:[x:int]:[y:int]\n" + "- ct:[text]\n- ...\n"
-					+ "Code: https://openmacroinput.page.link/jomicode\n"
-					+ "Support the project: https://openmacroinput.page.link/support\n"
-					+ "Hello World Tutorial: https://openmacroinput.page.link/hellojomi\n"
-					+ "Discord: https://eloistree.page.link/discord\n"
+					+ "Code: https://github.com/EloiStree/2020_04_10_JavaOpenMacroInputRuntime\n"
+					+ "Pizza License: https://github.com/EloiStree/License \n"
+					+ "Hello World Tutorial: https://github.com/EloiStree/OpenMacroInputDocumentation/blob/master/Tutorials/ByExample/HelloJOMI.md\n"
+					+ "Discord: https://discord.gg/7FcBRJkbzJ\n"
 					+ "Version: "+lastVersionDate+"\n\n"
 					+ "The application is running...\n(Close it when you done with it)\n"
 					;
