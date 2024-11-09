@@ -1,4 +1,5 @@
 package be.eloistree.openmacroinput;
+import be.eloistree.copyfromweb.*;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -30,11 +31,13 @@ public class OpenMacroInputJavaRuntime {
 		//public static int threadUDPPriority= Thread.NORM_PRIORITY;
 		public static int threadMainPriority= Thread.MAX_PRIORITY;
 		public static int threadUDPPriority= Thread.MAX_PRIORITY;
-	public static int port = 2501;
+		public static int portForString = 2501;
+		public static int portInteger = 2502;
 	public static ArrayList<String> history = new ArrayList<String>();
 	//public static JTextArea jTextArea = null;
 	public static Clipboard clipboard;
 	public static KeyEventIdPool keysUserShortcut;
+	public static IntegerCommandPool integerToCommandPool;
 	public static String locker = "";
 	public static long lockDenyCount;
 	public static ExecuteCommandWithRobot executer;
@@ -61,9 +64,12 @@ public class OpenMacroInputJavaRuntime {
 		createOrLoadUserShortCutPreference();
 		createTheBatchFileForWindow();
 		launchThreadThatListenToUDPToCreateQueue();
+		launchThreadThatListenToIIDCreateQueue();
 		if (useRefreshConsoleState)
 			StartRefreshUIThread();
 		executer = new ExecuteCommandWithRobot();
+		
+		//displayIntegerLoaded();
 
 		Thread.currentThread().setPriority(threadMainPriority);
 		
@@ -143,6 +149,16 @@ public class OpenMacroInputJavaRuntime {
 
 		
 	}
+	private static void displayIntegerLoaded() {
+		
+	    ArrayList<IntegerToCommand>	cmds =	integerToCommandPool.getRefToKeys();
+	    if(cmds.size()<=0) 
+	    	System.out.println("0 Integer To Command");
+	    for(int i=0; i<cmds.size();i++) {
+	    	System.out.println(String.format("%S:%S", cmds.get(i).m_nameAsString, cmds.get(i).m_command));
+	    }
+		
+	}
 	private static void createTheBatchFileForWindow() {
 		String path = "StartJOMI.bat";
 		File f = new File(path);
@@ -160,7 +176,7 @@ public class OpenMacroInputJavaRuntime {
 
 			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
 			    try {
-					Desktop.getDesktop().browse(new URI("https://openmacroinput.page.link/jomifirstrun"));
+					Desktop.getDesktop().browse(new URI("https://github.com/EloiStree/OpenMacroInputDocumentation/blob/master/Tutorials/ByExample/HelloJOMI.md"));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -220,12 +236,22 @@ public class OpenMacroInputJavaRuntime {
 	}
 
 	public static String getTextIpPortDescription() {
+		String result = "";
 		try {
-			return "IP: " + InetAddress.getLocalHost() + " Port:" + port + "\n";
+			result+= "IP: " + InetAddress.getLocalHost() + " Text Port:" + portForString+ " Integer Port:" + portInteger + "\n";
 		} catch (UnknownHostException e) {
 			OpenMacroInputJavaRuntime.DisplayException(e);
-			return "IP: 127.0.0.1 Port:" + port + "\n";
+			result+= "IP: 127.0.0.1 Port Text:" + portForString + "IID:" + portInteger + "\n";
 		}
+		
+		try {
+			result+= "Public IP: "+(FetchPublicIp.getPublicIP()+"\n");
+		}
+		catch (Exception e) {
+			result+= "Public IP: Not Found.\n";
+		}
+		return result;
+		
 	}
 
 	public static void setTextDisplayed(String text, boolean withIpInfo) {
@@ -256,6 +282,9 @@ public class OpenMacroInputJavaRuntime {
 	private static void createOrLoadUserShortCutPreference() throws IOException {
 		String keysShortcutTable = GetWantedShortCutOfUserFromFile();
 		keysUserShortcut = new KeyEventIdPool(keysShortcutTable);
+		
+		String integerToCommandText = GetWantedIntegerToMacroOfUserFromFile();
+		integerToCommandPool = new IntegerCommandPool(integerToCommandText);
 	}
 
 	public static synchronized int getPackageWaitingCount() {
@@ -269,7 +298,15 @@ public class OpenMacroInputJavaRuntime {
 	public static LinkedList<String> m_receivedPackage = new LinkedList<String>();
 
 	public static synchronized void addPackageToWait(String text) {
-		m_receivedPackage.add(text);
+		if(text!=null && text.length()>0)
+			m_receivedPackage.add(text);
+
+	}
+
+	public static synchronized void addPackageToWait(ArrayList<String> texts) {
+		if(texts!=null)
+			for(int i=0; i<texts.size();i++)
+				addPackageToWait(texts.get(i));
 
 	}
 
@@ -315,6 +352,94 @@ public class OpenMacroInputJavaRuntime {
 
 	}
 	
+	private static void launchThreadThatListenToIIDCreateQueue() {
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				DatagramSocket server = null;
+				try {
+
+
+					server = new DatagramSocket(portInteger);
+					byte[] buffer = new byte[256];
+					Charset cd = Charset.forName("UTF-8");
+					while (keepThreadAlive) {
+
+						DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+						server.receive(packet); // Receive the packet
+
+						// Get only the received data (not the entire buffer)
+						byte[] bytes = new byte[packet.getLength()];
+						System.arraycopy(packet.getData(), 0, bytes, 0, packet.getLength());
+						
+						if (CDebug.use)
+							System.out.println("P(" + m_receivedPackage.size() + "):" + bytes);
+						
+						System.out.println("b "+bytes);
+
+						int index=0;
+						int value=0;
+						long date= 0;
+
+				        if (bytes.length == 4) {
+				            // Convert 4-byte array to int (little-endian)
+				            value = (bytes[0] & 0xFF) | ((bytes[1] & 0xFF) << 8) | ((bytes[2] & 0xFF) << 16) | ((bytes[3] & 0xFF) << 24);
+				        } else if (bytes.length == 8) {
+				            // Convert 8-byte array to long (little-endian)
+				            value = (bytes[4] & 0xFF) | ((bytes[5] & 0xFF) << 8) | ((bytes[6] & 0xFF) << 16) | ((bytes[7] & 0xFF) << 24);
+				            
+				        } else if (bytes.length == 16) {
+				            // Placeholder for handling 16-byte arrays
+				            value = (bytes[4] & 0xFF) | ((bytes[5] & 0xFF) << 8) | ((bytes[6] & 0xFF) << 16) | ((bytes[7] & 0xFF) << 24);
+				            // Implement date sync time handling here when needed
+				        } else {
+				            System.out.println("Unsupported byte array length:"+bytes.length);
+				            continue;
+				        }
+						
+						addPackageToWait("i:"+value);
+						packet.setLength(buffer.length);
+						buffer= new byte[256];
+						//System.out.println("-To-");
+					}
+
+				} catch (SocketException e) {
+					OpenMacroInputJavaRuntime.DisplayException(e);
+					e.printStackTrace();
+					if (server != null)
+						server.close();
+					keepThreadAlive=false;
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					System.exit(0);
+				} catch (IOException e) {
+					OpenMacroInputJavaRuntime.DisplayException(e);
+					e.printStackTrace();
+					if (server != null)
+						server.close();
+					keepThreadAlive=false;
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					System.exit(0);
+				} finally {
+
+					
+				}
+			}
+
+		});
+
+		t.setPriority(Thread.MIN_PRIORITY);
+		t.start();
+	}
+
 
 	private static void launchThreadThatListenToUDPToCreateQueue() {
 		Thread t = new Thread(new Runnable() {
@@ -326,7 +451,7 @@ public class OpenMacroInputJavaRuntime {
 						System.out.println("" + MyUnicodeChar.press + MyUnicodeChar.release + MyUnicodeChar.stroke
 								+ MyUnicodeChar.youRock + MyUnicodeChar.split);
 
-					server = new DatagramSocket(port);
+					server = new DatagramSocket(portForString);
 					byte[] buffer = new byte[8192];
 					Charset cd = Charset.forName("UTF-8");
 					String str = "";
@@ -334,7 +459,9 @@ public class OpenMacroInputJavaRuntime {
 
 						DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 						server.receive(packet);
-						str = new String(packet.getData(), cd);
+						byte [] bytes= packet.getData();
+						
+						str = new String(bytes, cd);
 
 						if (CDebug.use)
 							System.out.println("P(" + m_receivedPackage.size() + "):" + str);
@@ -391,15 +518,14 @@ public class OpenMacroInputJavaRuntime {
 	private static void displayFrameToDebugAndCloseProcess(String[] args) {
 
 		try {
-			String textInitToDisplay = "IP: " + InetAddress.getLocalHost() + " Port:" + port + "\n" + "Args: "
+			String textInitToDisplay = getTextIpPortDescription() + "\n" + "Args: "
 					+ StringPlus.join(" ", args) + "\n" + getSupportLink() + "\n"
 					+ "Commands (P ress, R elease, S troke) :\n" + "- ks:[keyname:string]:\n" + "- ms:[0,1,2]\n"
-					+ "- wh:[wheel:int]\n" + "- mm:[x:int]:[y:int]\n" + "- ct:[text]\n- ...\n"
+					+ "- wh:[wheel:int]\n" + "- mm:[x:int]:[y:int]\n" + "- ct:[text]\n- i:[integer:int]\n- ...\n"
 					+ "Code: https://github.com/EloiStree/2020_04_10_JavaOpenMacroInputRuntime\n"
 					+ "Pizza License: https://github.com/EloiStree/License \n"
 					+ "Hello World Tutorial: https://github.com/EloiStree/OpenMacroInputDocumentation/blob/master/Tutorials/ByExample/HelloJOMI.md\n"
 					+ "Discord: https://discord.gg/7FcBRJkbzJ\n"
-					+ "Version: "+lastVersionDate+"\n\n"
 					+ "The application is running...\n(Close it when you done with it)\n"
 					;
 
@@ -438,7 +564,7 @@ public class OpenMacroInputJavaRuntime {
 
 			println("#####################");
 			if (args.length >= 1)
-				port = Integer.parseInt(args[0]);
+				portForString = Integer.parseInt(args[0]);
 			if (args.length >= 2)
 				locker = args[1];
 		}
@@ -454,6 +580,16 @@ public class OpenMacroInputJavaRuntime {
 		}
 		return readFile(path);
 	}
+	private static String GetWantedIntegerToMacroOfUserFromFile() throws IOException {
+		String path = "IntegerToCommand.txt";
+		File f = new File(path);
+		if (!f.exists()) {
+
+			writeFile(path, IntegerToCommand.getDefaultIntegerToCommands());
+			// StringPlus.join("\n", KeyEventId.GetAllEnumNames());
+		}
+		return readFile(path);
+	}
 
 	private static void writeListOfKeyAvailaibleAsFileForUser() throws IOException {
 		String path = "AllStrokableKeys.txt";
@@ -461,6 +597,8 @@ public class OpenMacroInputJavaRuntime {
 		if (!f.exists()) {
 			writeFile(path, StringPlus.join("\n", KeyEventId.GetAllEnumNames()));
 		}
+		
+		
 	}
 
 	public static void writeFile(String absolutePath, String text) {

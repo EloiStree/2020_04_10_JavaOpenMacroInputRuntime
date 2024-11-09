@@ -27,6 +27,7 @@ import be.eloistree.openmacroinput.command.CopyPastCommand.Type;
 import be.eloistree.openmacroinput.command.EmbraceCommand;
 import be.eloistree.openmacroinput.command.EmbracePerLineCommand;
 import be.eloistree.openmacroinput.command.ImageURLToClipboardCommand;
+import be.eloistree.openmacroinput.command.IntegerRobotCommand;
 import be.eloistree.openmacroinput.command.KeyStrokeCommand;
 import be.eloistree.openmacroinput.command.KillTheProgramCommand;
 import be.eloistree.openmacroinput.command.MouseClickCommand;
@@ -70,6 +71,7 @@ public class ExecuteCommandWithRobot {
 	}
 	public void execute(RobotCommand cmd) {
 		if( cmd instanceof  PastCommand ) execute((PastCommand)cmd);
+		else if( cmd instanceof IntegerRobotCommand) execute((IntegerRobotCommand)cmd);
 		else if( cmd instanceof  KeyStrokeCommand ) execute((KeyStrokeCommand)cmd);
 		else if( cmd instanceof  KillTheProgramCommand ) execute((KillTheProgramCommand)cmd);
 		else if( cmd instanceof  MouseClickCommand ) execute((MouseClickCommand)cmd);
@@ -91,6 +93,19 @@ public class ExecuteCommandWithRobot {
 	}
 	
 	public Hashtable<String, Point> screenPositionsSave= new Hashtable<String, Point>();
+	
+	
+	private void execute(IntegerRobotCommand cmd) {
+		
+		//System.out.println(cmd);
+		if(cmd!=null && cmd.m_commandsToCall!=null) {
+			
+			OpenMacroInputJavaRuntime.addPackageToWait(cmd.m_commandsToCall);
+			
+		}
+		
+		
+	}
 	
 	private void execute(SaveAndLoadScreenCursorPosition cmd) {
 

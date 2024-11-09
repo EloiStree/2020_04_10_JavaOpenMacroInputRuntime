@@ -12,6 +12,7 @@ import be.eloistree.openmacroinput.command.CopyPastCommand;
 import be.eloistree.openmacroinput.command.EmbraceCommand;
 import be.eloistree.openmacroinput.command.EmbracePerLineCommand;
 import be.eloistree.openmacroinput.command.ImageURLToClipboardCommand;
+import be.eloistree.openmacroinput.command.IntegerRobotCommand;
 import be.eloistree.openmacroinput.command.KeyStrokeCommand;
 import be.eloistree.openmacroinput.command.KillTheProgramCommand;
 import be.eloistree.openmacroinput.command.MouseClickCommand;
@@ -114,11 +115,15 @@ public class CommandParser {
 
 			//System.out.println(">>TEST   RTERTS>");
 			//System.out.println("Package as shortcut:"+packageToProcess);
+			//System.out.println("Package as result:"+result);
 		}
 		
 		else if (isItCopyPastCommand(packageToProcess, robotCommand)) {
 			result.add(robotCommand.ref);
 		} 
+		else if (isItIntegerCommand(packageToProcess, robotCommand)) {
+			result.add(robotCommand.ref);
+		}
 		else if (isItClipboardCommand(packageToProcess, result)) {}
 		else if (isItKeyStrokeCommand(packageToProcess, robotCommand)) {
 			result.add(robotCommand.ref);
@@ -154,6 +159,28 @@ public class CommandParser {
 			}
 		}
 		return result;
+	}
+
+	private boolean isItIntegerCommand(String packageToProcess, RobotCommandRef robotCommand) {
+		if (!(packageToProcess.startsWith("i:")))
+			return false;
+		if (packageToProcess.length() <= 2)
+			return false;
+		String content = packageToProcess.substring(2).trim();
+		try {
+			
+			int i = Integer.parseInt(content);
+			
+			
+			ArrayList<String> cmds= OpenMacroInputJavaRuntime.integerToCommandPool.getCommandsFromIntegerName(content);
+			robotCommand.ref =  new IntegerRobotCommand(content,cmds);
+			
+			return true;
+		
+		}catch (Exception e) {
+			System.out.print("That is not a integer: "+content);
+		}
+		return false;
 	}
 
 	private String getTimeAffectedUnicode() {
@@ -215,6 +242,27 @@ public class CommandParser {
 	private static String regexMouseSaveAction = "["+MyUnicodeChar.mouse+MyUnicodeChar.floppydisk+"][><]["+MyUnicodeChar.mouse+MyUnicodeChar.floppydisk+"][a-zA-Z0-9]*";
 	
 
+	private static String regexInteger ="i:[0-9]+";
+	private static IntegerRobotCommand BuildIntegerCmd(String shortcut) {
+		
+			String content = shortcut.replace("i:", "").trim();
+			
+			try {
+				
+				int i = Integer.parseInt(content);			
+				ArrayList<String> cmds= OpenMacroInputJavaRuntime.integerToCommandPool.getCommandsFromIntegerName(content);
+					
+				return new IntegerRobotCommand(content,cmds);
+				
+			
+			}catch (Exception e) {
+				System.out.print("That is not a integer: "+content);
+			}
+		
+		return null;
+		
+	}
+
 	private boolean isItSomeShortcutCommandsV2(String packageToProcess, ArrayList<RobotCommand> result, ExecuteTime startPoint) {
 
 		if (!(packageToProcess.indexOf("sc:")==0))
@@ -228,24 +276,35 @@ public class CommandParser {
 		//if(CDebug.use)
 		//System.out.println(">>>"+content);
 		content= replaceComboStrokeByKeyPressions(content);
-		if(CDebug.use)
-		System.out.println(">>>"+content);
+		//if(CDebug.use)
+			//System.out.println(">>>"+content);
 
 		//ArrayList<String> shortcuts = new ArrayList<String>();//FindArrowShortcutWithText(content);
 		ArrayList<String> shortcuts = FindArrowShortcutWithText(content);
 		Calendar whenToExecute = Calendar.getInstance();
 		//System.out.println(">>TEST GS>"+whenToExecute.getTimeInMillis());
+		//System.out.println(shortcuts);
+		//System.out.println(shortcuts.size());
+		
 		if(startPoint!=null && startPoint.m_whenToExecute!=null)
 			whenToExecute=startPoint.m_whenToExecute;
 			for (int i = 0; i < shortcuts.size(); i++) {
 				String shortcut = shortcuts.get(i);
 				
-
+				//System.out.println(shortcut);
 				if(shortcut.matches(regexText))
 				{
 					PastCommand created = new PastCommand(shortcut.substring(2,shortcut.length()-2));
 					created.setTimeToExecute( new ExecuteTime(whenToExecute));
 					result.add(created);
+					
+				}else if(shortcut.indexOf("i:")==0 ) {
+						
+					IntegerRobotCommand irc= BuildIntegerCmd(shortcut.replace("i:",""));
+
+					irc.setTimeToExecute((new ExecuteTime(whenToExecute)));
+					result.add(irc);
+					
 					
 				}
 				
@@ -282,6 +341,7 @@ public class CommandParser {
 					
 					
 				}
+				
 				
 				//System.out.println(">>TEST G>"+shortcut);
 				
@@ -769,7 +829,7 @@ public class CommandParser {
 		return shortcut;
 	}//*/
 
-	private static Pattern r =Pattern.compile(String.format("(%s)|(%s)|(%s)|(%s)|(%s)|(%s)", regexCommand,regexText,regexTime, regexTimeWatch,regexMouseAction,regexMouseSaveAction));
+	private static Pattern r =Pattern.compile(String.format("(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)", regexCommand,regexText,regexTime, regexTimeWatch,regexMouseAction,regexMouseSaveAction,regexInteger));
 	private static ArrayList<String> FindArrowShortcutWithText(String value) {
 		//System.out.println("Hello");
 		//System.out.println("Bye");

@@ -1,5 +1,7 @@
 package be.eloistree.openmacroinput.command;
 
+import java.util.ArrayList;
+
 public class PastCommand extends RobotCommand{
 	
 	public String m_textToPast;
@@ -20,3 +22,5 @@ public class PastCommand extends RobotCommand{
 		
 	}
 }
+
+
