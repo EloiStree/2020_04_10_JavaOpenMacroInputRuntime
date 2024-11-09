@@ -119,14 +119,22 @@ public class ExecuteCommandWithRobot {
 		c=  cmd;
 		Thread thread= new Thread() {
 		      public void run() {
+		    	  try {
+		    		  
+		    		  
 		  		new ImageToClipboard(c.getUrl());
+		    	  }catch(Exception e) {
+		    		  	System.out.println("Image not loaded: "+c.getUrl());
+		    		  
+		    	  }
 		        }
 		      };
 		      thread.start();	
 	}
 	
 	public void execute(UnicodeCommand cmd) {
-		if(cmd==null) return;
+		if(cmd==null)
+			return;
 		PastText(cmd.getUnicodeAsString());
 	}
 	String s ="";
@@ -150,7 +158,7 @@ public class ExecuteCommandWithRobot {
 	
 	public long m_timeBetweenCommandInMs=0;
 	public void execute(KeyStrokeCommand cmd) {
-		System.out.println(">>"+GetIdFrom(cmd.m_javaKeyName));
+		//System.out.println(">>"+GetIdFrom(cmd.m_javaKeyName));
 		if(cmd.m_pressType==PressType.Stroke || cmd.m_pressType==PressType.Press ) {
 			
 
@@ -189,7 +197,7 @@ public class ExecuteCommandWithRobot {
 	}
 	
 	public void execute(MouseClickCommand cmd) {
-		System	.out.print("ddd "+cmd.toString());
+		//System	.out.print("ddd "+cmd.toString());
 		if(cmd.getPressType()==PressType.Stroke || cmd.getPressType()==PressType.Press )
 		robot.mousePress((cmd.getButtonJavaId()));
 		if(cmd.getPressType()==PressType.Stroke || cmd.getPressType()==PressType.Release )
@@ -230,7 +238,7 @@ public class ExecuteCommandWithRobot {
 		 x = (int) x_L2R;
 		 y = (int) (screenSize.height-y_B2T);
 		 
-		  System.out.println("x:"+x+"y:"+y+ " vs "+cmd);
+		  //System.out.println("x:"+x+"y:"+y+ " vs "+cmd);
 		  robot.mouseMove(x,y);
 	}
 	public void execute(MouseMoveOneAxisCommand cmd) {
@@ -251,8 +259,8 @@ public class ExecuteCommandWithRobot {
 		 }
 			
 
-		 float absolutePixelX =p.x;
-		 float absolutePixelY=p.y;
+		 float absolutePixelX = p.x;
+		 float absolutePixelY = p.y;
 		 
 		 if(cmd.m_moveType==MoveType.Add) {
 			 
@@ -276,7 +284,7 @@ public class ExecuteCommandWithRobot {
 				 absolutePixelY=screenSize.height-relativeValue;
 		 }
 
-		 //System.out.println("x:"+absolutePixelX+"y:"+absolutePixelY+ " vs "+cmd );
+		 System.out.println("x:"+absolutePixelX+" y:"+absolutePixelY+ " vs "+cmd );
 		  robot.mouseMove((int)absolutePixelX,(int)absolutePixelY);
 		 
 	}
@@ -323,17 +331,21 @@ public void execute(EmbracePerLineCommand cmd) {
 	
 	String text =CopyText();
 	String toPast="";
+	
+	
+	
+	
 	String [] lines = text.split("\n");
 	for (int i = 0; i < lines.length; i++) {
-		toPast =
+		toPast +=
 				cmd.m_textLeft +
 				lines[i] +
 				cmd.m_textRight+
 				'\n';
-		PastText(toPast);
-		robot.keyPress(KeyEvent.VK_ENTER);
-		robot.keyRelease(KeyEvent.VK_ENTER);
 	}
+	PastText(toPast);
+	//robot.keyPress(KeyEvent.VK_ENTER);
+	//robot.keyRelease(KeyEvent.VK_ENTER);
 	//System.out.println("<"+toPast);
 	
 }
@@ -365,20 +377,27 @@ public void execute(EmbraceCommand cmd) {
 	
 	boolean messageWrite = false;
 	String cut = CutText();
-	while (!messageWrite) {
+	
+	int antiloop=50;
+	while (!messageWrite && antiloop>=0) {
 		try {
 			
-			
-			PastText(cmd.m_textLeft);
+			cut =cmd.m_textLeft+cut+cmd.m_textRight;
 			PastText(cut);
-			PastText(cmd.m_textRight);
-
 			messageWrite = true;
 		} catch (IllegalStateException e) {
 			if(CDebug.use)System.out.println("Did not send message... Retry");
 
-		
+			antiloop--;
+			if(antiloop==0)
+				System.out.println("Clipboard did not worked.");
 			messageWrite = false;
+			try {
+				Thread.sleep(5);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		} 
 
 	}
@@ -398,9 +417,29 @@ public void execute(EmbraceCommand cmd) {
 		}
 		
 		StringSelection text = new StringSelection(txt);
-		try {
-		    clipboard.setContents(text, text);
-		if (OsUtility.getOS() == OS.MAC) {
+		int antiLoop =50;
+		boolean  done = false;
+		while(!done && antiLoop>=0) {
+			try {
+				
+			    clipboard.setContents(text, text);
+			    done =true;
+			} catch (Exception e) {
+				antiLoop--;
+				if(antiLoop==0)
+					e.printStackTrace();
+
+			    try {
+					Thread.sleep(2);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		}
+		
+		    
+		    if (OsUtility.getOS() == OS.MAC) {
 		
 				robot.keyPress(KeyEvent.VK_META);
 				robot.keyPress(KeyEvent.VK_V);	
@@ -414,11 +453,7 @@ public void execute(EmbraceCommand cmd) {
 				robot.keyRelease(KeyEvent.VK_CONTROL);
 		
 		}
-		Thread.sleep(20);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 	}
 
 	private String CopyText() {
@@ -438,7 +473,8 @@ public void execute(EmbraceCommand cmd) {
 		
 		}
 		try {
-			Thread.sleep(20);
+			//Thread.sleep(20);
+			Thread.sleep(5);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

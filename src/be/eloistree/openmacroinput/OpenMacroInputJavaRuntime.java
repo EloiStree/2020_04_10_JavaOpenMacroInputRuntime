@@ -28,8 +28,8 @@ public class OpenMacroInputJavaRuntime {
 	
 	//public static int threadMainPriority= Thread.NORM_PRIORITY;
 		//public static int threadUDPPriority= Thread.NORM_PRIORITY;
-		public static int threadMainPriority= Thread.MIN_PRIORITY;
-		public static int threadUDPPriority= Thread.MIN_PRIORITY;
+		public static int threadMainPriority= Thread.MAX_PRIORITY;
+		public static int threadUDPPriority= Thread.MAX_PRIORITY;
 	public static int port = 2501;
 	public static ArrayList<String> history = new ArrayList<String>();
 	//public static JTextArea jTextArea = null;

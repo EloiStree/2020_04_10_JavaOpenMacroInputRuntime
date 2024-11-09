@@ -143,7 +143,7 @@ trycmd("mr:l","")
 
 
 
-"""
+#"""
 trycmd("sc:🐁A↓0.3←0.3px 10> 🐁LeftClick ","R T")
 trycmd("sc:🐁A→100↑100 10> 🐁LeftClick ","R T")
 
@@ -162,13 +162,16 @@ trycmd("sc:( leftclick↓ 10> 🐁→200px leftclick↑ 10>)x1  ","R T")
 trycmd("sc:( leftclick↓ 10> 🐁↑200px leftclick↑ 10>)x1  ","R T")
 trycmd("sc:( leftclick↓ 10> 🐁←200px leftclick↑ 10>)x1  ","R T")
 trycmd("sc:( leftclick↓ 10> 🐁↓200px leftclick↑ 10>)x1  ","R T")
-"""
+#"""
+
+
 trycmd("img2clip:https://i.imgflip.com/4k39g9.jpg","")
 trycmd("sc:ctrl+v 1000> ctrl+v  ","")
 trycmd("sc: ( ctrl+pagedown )x5","")
 
 
 """
+
 trycmd("ks:VK_A","Stroke 'a'")
 trycmd("kp:VK_B","Press 'b'")
 trycmd("kr:VK_B","Release 'b'")
@@ -181,6 +184,8 @@ for x in range(40):
   time.sleep(0.1)
   
  """
+
+
   
 
 

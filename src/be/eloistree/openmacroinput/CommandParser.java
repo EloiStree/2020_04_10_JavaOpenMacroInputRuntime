@@ -55,7 +55,7 @@ public class CommandParser {
 	
 	public ArrayList<RobotCommand> getCommandsFrom(String packageToProcess) {
 
-		System.out.println("Package:"+packageToProcess);
+		//System.out.println("Package:"+packageToProcess);
 		packageToProcess = packageToProcess.trim();
 		
 		ExecuteTime whenToDo = null;
@@ -112,9 +112,8 @@ public class CommandParser {
 
 			timeManagedByConversion=true;
 
-		//	System.out.println(">>TEST   RTERTS>");
-
-			System.out.println("Package as shortcut:"+packageToProcess);
+			//System.out.println(">>TEST   RTERTS>");
+			//System.out.println("Package as shortcut:"+packageToProcess);
 		}
 		
 		else if (isItCopyPastCommand(packageToProcess, robotCommand)) {
@@ -172,24 +171,22 @@ public class CommandParser {
 		if (packageToProcess.length() <= 3)
 			return false;
 		String content = packageToProcess.substring(3);
-		String[] tokens = content.split(""+MyUnicodeChar.split);
+		String[] tokens = content.split("["+MyUnicodeChar.split+"]");
 		if (tokens.length == 2) {
 			robotCommand.ref = new EmbraceCommand(tokens[0], tokens[1]);
 			return true;
-		} else {
-
-			tokens = content.split(":");
-			if (tokens.length == 2) {
-				robotCommand.ref = new EmbraceCommand(tokens[0], tokens[1]);
-				return true;
-			}
 		}
+		else if (tokens.length == 1) {
+			robotCommand.ref = new EmbraceCommand(tokens[0], "");
+			return true;
+		}
+		
 		return false;
 
 	}
 
 	private boolean isItEmbracePerLineCommand(String packageToProcess, RobotCommandRef robotCommand) {
-		if (!(packageToProcess.startsWith("empl:")))
+		if (!(packageToProcess.indexOf("empl:")==0))
 			return false;
 		if (packageToProcess.length() <= 5)
 			return false;
@@ -198,14 +195,12 @@ public class CommandParser {
 		if (tokens.length == 2) {
 			robotCommand.ref = new EmbracePerLineCommand(tokens[0], tokens[1]);
 			return true;
-		} else {
-
-			tokens = content.split(":");
-			if (tokens.length == 2) {
-				robotCommand.ref = new EmbracePerLineCommand(tokens[0], tokens[1]);
-				return true;
-			}
 		}
+		else if (tokens.length == 1) {
+			robotCommand.ref = new EmbracePerLineCommand(tokens[0], "");
+			return true;
+		}
+		
 		return false;
 
 	}
@@ -217,7 +212,7 @@ public class CommandParser {
 	private static String regexTimeWatch =MyUnicodeChar.watchTime+"[0-9h:s]+";
 	private static String regexMouseAction = MyUnicodeChar.mouse+"[a-zA-Z0-9."+MyUnicodeChar.arrowslrtd()+"]+";
 	
-	private static String regexMouseSaveAction = MyUnicodeChar.mouse+"[><]"+MyUnicodeChar.floppydisk+"[a-zA-Z0-9]*";
+	private static String regexMouseSaveAction = "["+MyUnicodeChar.mouse+MyUnicodeChar.floppydisk+"][><]["+MyUnicodeChar.mouse+MyUnicodeChar.floppydisk+"][a-zA-Z0-9]*";
 	
 
 	private boolean isItSomeShortcutCommandsV2(String packageToProcess, ArrayList<RobotCommand> result, ExecuteTime startPoint) {
@@ -231,7 +226,7 @@ public class CommandParser {
 		//Pattern.compile(String.format("(%s)|(%s)", regexCommand,regexText));
 
 		//if(CDebug.use)
-		System.out.println(">>>"+content);
+		//System.out.println(">>>"+content);
 		content= replaceComboStrokeByKeyPressions(content);
 		if(CDebug.use)
 		System.out.println(">>>"+content);
@@ -274,7 +269,7 @@ public class CommandParser {
 						shortcut.indexOf(""+MyUnicodeChar.mouse)>-1) {
 
 
-					System.out.println(">save & load>"+shortcut);
+					//System.out.println(">save & load>"+shortcut);
 					ConvertTextToActionsSaveAndLoadMouse(result, shortcut, whenToExecute);
 					
 					
@@ -312,7 +307,15 @@ public class CommandParser {
 			direction=txt.indexOf(">");
 		char directionChar = txt.charAt(direction);
 		int floppy= txt.indexOf(MyUnicodeChar.floppydisk);
-		String name = txt.substring(floppy).replace(MyUnicodeChar.floppydisk, "").trim();
+		
+		int lastIndex = floppy > mouse ? floppy : mouse ;
+		boolean isMouseFirst = floppy > mouse;
+		
+		
+		String name = txt.substring(lastIndex)
+				.replace(MyUnicodeChar.floppydisk, "")
+				.replace(MyUnicodeChar.mouse, "")
+				.trim();
 
 		//if(CDebug.use) 
 		//System.out.println("\n> "+mouse +"|"+ directionChar+"|"+floppy+"|Name:"+name );
@@ -323,6 +326,13 @@ public class CommandParser {
 				directionChar=='>'?
 						SaveAndLoadScreenCursorPosition.ActionType.Save:
 						SaveAndLoadScreenCursorPosition.ActionType.Load;
+		if(!isMouseFirst ) {
+			if(actionTYpe == SaveAndLoadScreenCursorPosition.ActionType.Save )
+				actionTYpe = SaveAndLoadScreenCursorPosition.ActionType.Load;
+			else
+				actionTYpe = SaveAndLoadScreenCursorPosition.ActionType.Save;
+		}
+		
 		RobotCommand cmd=new SaveAndLoadScreenCursorPosition(name,actionTYpe );
 		
 		if(cmd!=null &&  whenToExecute!=null) {
@@ -466,7 +476,7 @@ public class CommandParser {
 
 	
 	private int extractTimeInMSFromWatch(String text, Calendar whenToExecute) {
-		System.out.println(">>Watch humm>");
+		//System.out.println(">>Watch humm>");
 		text= text.trim();
 		int i = text.indexOf(MyUnicodeChar.watchTime);
 		if(i<0)return 0;
@@ -498,7 +508,7 @@ public class CommandParser {
 			if(ms<0)
 				ms=0;	
 			
-				System.out.println(">>Watcj Time>"+text+">"+ ms);
+			//System.out.println(">>Watcj Time>"+text+">"+ ms);
 		return (int) ms;
 		
 		
@@ -738,7 +748,7 @@ public class CommandParser {
 		else if (content .contentEquals("scroll")) {
 			result.add(new MouseScrollCommand(pressType == PressType.Press ? -1 : 1));
 		}
-
+		
 		if(foundValue!=null) {
 			result.add(foundValue);
 			if(found!=null)
@@ -800,7 +810,7 @@ public class CommandParser {
 			tokens[1] = tokens[1].replace("p", "");
 			xPx = Float.parseFloat(tokens[0]);
 			yPx = Float.parseFloat(tokens[1]);
-			System.out.println("> x"+xPx+" y"+yPx);
+			//System.out.println("> x"+xPx+" y"+yPx);
 		} catch (Exception e) {
 			return false;
 		}

@@ -45,9 +45,15 @@ public class ShortCutTransformer {
 			text = text.replaceAll(MyUnicodeChar.mouse+"leftclick↕", MyUnicodeChar.mouse+"leftclick");
 			text = text.replaceAll(MyUnicodeChar.mouse+"rightclick↕", MyUnicodeChar.mouse+"rightclick");
 			text = text.replaceAll(MyUnicodeChar.mouse+"middleclick↕", MyUnicodeChar.mouse+"middleclick");
+			
+		
+			
 		}
 		text = ReplaceMouseByShortcutEquivalent(text);
 
+		text.replace("scrollup","scroll"+MyUnicodeChar.arrowUp );
+		text.replace("scrolldown","scroll"+MyUnicodeChar.arrowDown );
+		
 		text = replaceMaintainToShortcutEquivalent(text);
 		text = replaceMouseMoveShortToShortcutEquivalent(text);
 
@@ -56,7 +62,7 @@ public class ShortCutTransformer {
 
 		text = ReplaceTimeBiggerThenNotation(text);
 		IntegerWrapper foundIteration = new IntegerWrapper(1);
-		for (int i = 0; foundIteration.m_value > 0 && i < 10; i++) {
+		for (int i = 0; foundIteration.m_value > 0 && i < 200; i++) {
 			text = UnzipMultiplicator(text, foundIteration);
 			// System.out.println("Iteration: "+foundIteration.m_value);
 		}
