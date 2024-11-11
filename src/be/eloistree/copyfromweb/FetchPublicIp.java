@@ -8,7 +8,8 @@ import java.net.http.HttpResponse;
 public class FetchPublicIp {
 
     public static String getPublicIP() {
-        String ipServiceUrl = "https://api.ipify.org";
+        return "";
+    	/*String ipServiceUrl = "https://api.ipify.org";
 
         try {
             HttpClient client = HttpClient.newHttpClient();
@@ -21,7 +22,7 @@ public class FetchPublicIp {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
-        }
+        }*/
     }
 
 }

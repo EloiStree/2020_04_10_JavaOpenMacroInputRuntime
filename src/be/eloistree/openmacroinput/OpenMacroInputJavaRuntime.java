@@ -53,6 +53,7 @@ public class OpenMacroInputJavaRuntime {
 	public static boolean keepThreadAlive=true;
 
 	public static String lastVersionDate="2024-11-09";
+	
 	public static void main(String[] args) throws IOException, InterruptedException {
 
 		/// PlaySoundFromUrl.PlayWav("https://www.kozco.com/tech/WAV-MP3.wav");
